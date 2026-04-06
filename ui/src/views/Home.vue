@@ -216,7 +216,7 @@ export default {
               if(searchable && searchparameter) {
                 let filter = {
                   searchparameter: searchparameter.valueString,
-                  label: this.$t('search')+ "_" + translatedHeader ? translatedHeader: label.valueString
+                  label: this.$t('search')+ "_" + (translatedHeader ? translatedHeader : label.valueString)
                 }
                 if(valueset && valueset.valueString) {
                   filter.binding = valueset.valueString
