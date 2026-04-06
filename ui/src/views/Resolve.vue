@@ -336,8 +336,8 @@ export default {
 
         let matchingKeys = [];
 
-        for (let i = 0; i < responseData.length; i++) {
-          const dataObject = responseData[i];
+        for (let i = 0; i < resp.data.length; i++) {
+          const dataObject = resp.data[i];
             for (let key in dataObject) {
               if (extRegexPattern.test(key)) {
                 matchingKeys.push(key);
@@ -348,7 +348,7 @@ export default {
 
 
         let idRegexPattern = /^identifier/;
-        for (let key in responseData[0]) {
+        for (let key in resp.data[0]) {
           if (idRegexPattern.test(key)) {
               this.$set(this.fields, key, this.$t(key));
 
@@ -356,7 +356,7 @@ export default {
         }
 
 
-      this.resolves = responseData
+      this.resolves = resp.data
 
       shuffle(this.available_nicknames)
       this.organizeResolves(true)
@@ -373,7 +373,7 @@ export default {
     cridHeader: function() {
       return this.useNickname ?  this.$t('Temporary_cr_id') + ( this.includeCRID ? " / Actual CR ID" : "") : "CR ID"
     },
-    filteredScores() {
+    filteredScores(scores) {
         return (data) => {
           const filteredScores = {};
 
