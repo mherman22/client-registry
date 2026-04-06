@@ -1,99 +1,72 @@
 <template>
-  <v-container>
-    <center>
-      <v-layout
-        row
-        wrap
-      >
-        <v-flex xs3 />
-        <v-flex xs6>
-          <v-alert
-            type="error"
-            :value="authStatus"
-          > {{ $t('auth_failed') }}
-          </v-alert>
-        </v-flex>
-      </v-layout>
-      <v-card
-        width="430px"
-        hover
-      >
-        <v-card-title primary-title>
-          <v-toolbar
-            color="primary"
-            style="color: white"
-          >
-            <v-layout
-              row
-              wrap
-            >
-              <v-flex
-                xs2
-                text-xs-left
-              >
-                <v-icon
-                  x-large
-                  color="white"
-                >
-                  mdi-lock
-                </v-icon>
-              </v-flex>
-              <v-flex
-                xs9
-                text-xs-right
-              >
-                <b>  {{ $t('login') }}</b>
-              </v-flex>
-            </v-layout>
-          </v-toolbar>
-        </v-card-title>
-        <v-card-text>
+  <v-container fluid fill-height class="login-background">
+    <v-row align="center" justify="center">
+      <v-col cols="12" sm="8" md="5" lg="4">
+        <v-alert
+          type="error"
+          :value="authStatus"
+          class="mb-4"
+          outlined
+          dense
+        > {{ $t('auth_failed') }}
+        </v-alert>
+        <v-card class="login-card pa-6" elevation="2" rounded="lg">
+          <div class="text-center mb-6">
+            <v-icon size="56" color="primary" class="mb-3">mdi-shield-account</v-icon>
+            <div class="text-h5 font-weight-medium">Open Client Registry</div>
+            <div class="text-subtitle-2 grey--text text--darken-1 mt-1">Sign in to your account</div>
+          </div>
           <v-form
             ref="form"
-            class="pa-3 pt-4"
+            class="px-2"
           >
             <v-text-field
               v-model="username"
               required
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :label="$t('labels_Username')"
+              prepend-inner-icon="mdi-account-outline"
               @keyup.enter="authenticate()"
               @blur="$v.username.$touch()"
               @change="$v.username.$touch()"
               :error-messages="usernameErrors"
+              class="mb-2"
             />
             <v-text-field
               v-model="password"
               required
-              filled
+              outlined
+              dense
               type="password"
-              color="deep-purple"
+              color="primary"
               :label="$t('labels_Password')"
+              prepend-inner-icon="mdi-lock-outline"
               @keyup.enter="authenticate()"
               @blur="$v.password.$touch()"
               @change="$v.password.$touch()"
               :error-messages="passwordErrors"
+              class="mb-2"
             />
           </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-toolbar>
-            <v-spacer />
+          <div class="px-2 mt-2">
             <v-btn
-              class="white--text"
+              block
               color="primary"
               depressed
+              large
               @click="authenticate()"
               :disabled="$v.$invalid"
+              class="text-none font-weight-medium"
             >
-              <v-icon left>mdi-lock-open-variant</v-icon>
+              <v-icon left>mdi-login</v-icon>
               {{ $t('login') }}
             </v-btn>
-          </v-toolbar>
-        </v-card-actions>
-      </v-card>
-    </center>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 <script>
@@ -180,4 +153,12 @@ export default {
   }
 };
 </script>
-
+<style scoped>
+.login-background {
+  background: linear-gradient(135deg, #E3F2FD 0%, #FAFBFC 50%, #E0F7FA 100%);
+  min-height: 100vh;
+}
+.login-card {
+  border-top: 3px solid #1976D2;
+}
+</style>

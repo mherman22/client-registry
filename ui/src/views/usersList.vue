@@ -7,184 +7,157 @@
       max-width="500px"
       transition="dialog-transition"
     >
-      <v-toolbar
-        color="primary"
-        dark
-      >
-        <v-spacer></v-spacer>
-        <v-icon
-          @click="editDialog = false"
-          style="cursor: pointer"
-        >mdi-close</v-icon>
-      </v-toolbar>
-      <v-card>
-        <v-card-title primary-title>
-          {{user.userName}}
-        </v-card-title>
-        <v-card-text>
-          <v-layout
-            row
-            wrap
+      <v-card rounded="lg">
+        <div class="pa-4 d-flex align-center" style="background-color: #E3F2FD;">
+          <v-icon left color="primary">mdi-account-edit-outline</v-icon>
+          <div class="text-h6 font-weight-medium">{{user.userName}}</div>
+          <v-spacer></v-spacer>
+          <v-btn icon small @click="editDialog = false"><v-icon small>mdi-close</v-icon></v-btn>
+        </div>
+        <v-divider></v-divider>
+        <v-card-text class="pa-6">
+          <v-form
+            ref="form"
           >
-            <v-spacer />
-            <v-flex xs6>
-              <v-form
-                ref="form"
-                class="pa-3 pt-4"
-              >
-                <v-text-field
-                  required
-                  @blur="$v.firstName.$touch()"
-                  @change="$v.firstName.$touch()"
-                  :error-messages="firstnameErrors"
-                  v-model="firstName"
-                  filled
-                  color="deep-purple"
-                  :label="$t('given_names')"
-                />
-                <v-text-field
-                  v-model="otherName"
-                  filled
-                  color="deep-purple"
-                  :label="$t('middle_names')"
-                />
-                <v-text-field
-                  required
-                  @blur="$v.surname.$touch()"
-                  @change="$v.surname.$touch()"
-                  :error-messages="surnameErrors"
-                  v-model="surname"
-                  filled
-                  color="deep-purple"
-                  :label="$t('surname')"
-                />
-                <v-autocomplete
-                  v-model="role"
-                  :items="roles"
-                  item-text="name"
-                  item-value="value"
-                  @blur="$v.role.$touch()"
-                  @change="$v.role.$touch()"
-                  :error-messages="roleErrors"
-                  filled
-                  color="deep-purple"
-                  :label="$t('user_role')"
-                ></v-autocomplete>
-                <v-autocomplete
-                  v-model="status"
-                  :items="statuses"
-                  item-text="name"
-                  item-value="value"
-                  @blur="$v.status.$touch()"
-                  @change="$v.status.$touch()"
-                  :error-messages="statusErrors"
-                  filled
-                  color="deep-purple"
-                  :label="$t('patient_status')"
-                ></v-autocomplete>
-              </v-form>
-            </v-flex>
-            <v-spacer />
-          </v-layout>
+            <v-text-field
+              required
+              @blur="$v.firstName.$touch()"
+              @change="$v.firstName.$touch()"
+              :error-messages="firstnameErrors"
+              v-model="firstName"
+              outlined
+              dense
+              color="primary"
+              :label="$t('given_names')"
+              class="mb-1"
+            />
+            <v-text-field
+              v-model="otherName"
+              outlined
+              dense
+              color="primary"
+              :label="$t('middle_names')"
+              class="mb-1"
+            />
+            <v-text-field
+              required
+              @blur="$v.surname.$touch()"
+              @change="$v.surname.$touch()"
+              :error-messages="surnameErrors"
+              v-model="surname"
+              outlined
+              dense
+              color="primary"
+              :label="$t('surname')"
+              class="mb-1"
+            />
+            <v-autocomplete
+              v-model="role"
+              :items="roles"
+              item-text="name"
+              item-value="value"
+              @blur="$v.role.$touch()"
+              @change="$v.role.$touch()"
+              :error-messages="roleErrors"
+              outlined
+              dense
+              color="primary"
+              :label="$t('user_role')"
+              class="mb-1"
+            ></v-autocomplete>
+            <v-autocomplete
+              v-model="status"
+              :items="statuses"
+              item-text="name"
+              item-value="value"
+              @blur="$v.status.$touch()"
+              @change="$v.status.$touch()"
+              :error-messages="statusErrors"
+              outlined
+              dense
+              color="primary"
+              :label="$t('patient_status')"
+            ></v-autocomplete>
+          </v-form>
         </v-card-text>
-        <v-card-actions>
+        <v-divider></v-divider>
+        <v-card-actions class="pa-4">
           <v-spacer />
           <v-btn
             depressed
             :disabled="$v.$invalid"
-            class="white--text"
-            color="deep-purple accent-4"
+            color="primary"
             @click="saveChanges()"
+            class="text-none"
           >
-            <v-icon left>
-              mdi-language
-            </v-icon>{{ $t('save') }}
+            <v-icon left small>mdi-content-save</v-icon>{{ $t('save') }}
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <center>
-      <v-alert
-        style="width: 500px"
-        v-model="alertSuccess"
-        type="success"
-        dismissible
-        transition="scale-transition"
-      >
-        {{alertMsg}}
-      </v-alert>
-      <v-alert
-        style="width: 500px"
-        v-model="alertFail"
-        type="error"
-        dismissible
-        transition="scale-transition"
-      >
-        {{alertMsg}}
-      </v-alert>
-    </center>
-    <v-card
-      color="cyan lighten-5"
-      width="1500px"
-      class="mx-auto"
-    >
-      <v-card-title
-        primary-title
-        width="1000"
-      >
-        <v-toolbar
-          color="white"
-          style="font-weight: bold; font-size: 18px;"
-        >
-         {{ $t('users_list') }}
-          <v-spacer></v-spacer>
-          <v-text-field
-            v-model="searchUsers"
-            append-icon="mdi-magnify"
-            label="Search"
-            single-line
-            hide-details
-          ></v-text-field>
-        </v-toolbar>
+    <div class="d-flex align-center mb-4">
+      <div>
+        <div class="text-h5 font-weight-medium">{{ $t('users_list') }}</div>
+        <div class="text-subtitle-2 grey--text">Manage system users</div>
+      </div>
+      <v-spacer></v-spacer>
+    </div>
+    <v-card elevation="1" rounded="lg" class="mx-auto" max-width="1200">
+      <v-card-title class="pa-4">
+        <v-text-field
+          v-model="searchUsers"
+          prepend-inner-icon="mdi-magnify"
+          label="Search"
+          single-line
+          hide-details
+          outlined
+          dense
+          rounded
+          clearable
+        ></v-text-field>
       </v-card-title>
-      <v-card-text>
-        <v-data-table
-          :headers="usersHeader"
-          :items="users"
-          :search="searchUsers"
-          dark
-          class="elevation-1"
-          :loading='loadingUsers'
-          :footer-props="{ 
-          'items-per-page-text':this.$t('row_per_page')}"
-          :no-data-text="$t('no_data')"
+      <v-divider></v-divider>
+      <v-data-table
+        :headers="usersHeader"
+        :items="users"
+        :search="searchUsers"
+        :loading='loadingUsers'
+        :footer-props="{
+        'items-per-page-text':this.$t('row_per_page')}"
+        :no-data-text="$t('no_data')"
+      >
+        <v-progress-linear
+          slot="progress"
+          color="primary"
+          indeterminate
+        ></v-progress-linear>
+        <template
+          v-slot:item="{ item }"
         >
-          <v-progress-linear
-            slot="progress"
-            color="blue"
-            indeterminate
-          ></v-progress-linear>
-          <template
-            v-slot:item="{ item }"
-          >
-            <tr>
-              <td>{{item.firstName}}</td>
-              <td>{{item.surname}}</td>
-              <td>{{item.otherName}}</td>
-              <td>{{item.userName}}</td>
-              <td v-if='item.role'>{{item.role}}</td>
-              <td v-else></td>
-              <td>{{item.status}}</td>
-              <td>
-                <v-btn
-                  small
-                  @click="edit(item)"
-                ><v-icon left>mdi-pencil</v-icon>Edit</v-btn>
-              </td>
-            </tr>
-          </template>
-        </v-data-table>
-      </v-card-text>
+          <tr>
+            <td class="py-3">{{item.firstName}}</td>
+            <td class="py-3">{{item.surname}}</td>
+            <td class="py-3">{{item.otherName}}</td>
+            <td class="py-3">{{item.userName}}</td>
+            <td class="py-3" v-if='item.role'>
+              <v-chip small label :color="item.role === 'admin' ? 'primary' : 'accent'" dark>{{item.role}}</v-chip>
+            </td>
+            <td class="py-3" v-else></td>
+            <td class="py-3">
+              <v-chip small label :color="item.status === 'active' ? 'success' : 'grey'" dark>{{item.status}}</v-chip>
+            </td>
+            <td class="py-3">
+              <v-btn
+                small
+                outlined
+                color="primary"
+                @click="edit(item)"
+                class="text-none"
+              ><v-icon left small>mdi-pencil</v-icon>Edit</v-btn>
+            </td>
+          </tr>
+        </template>
+      </v-data-table>
     </v-card>
   </v-container>
 </template>
@@ -338,4 +311,15 @@ export default {
   }
 }
 </script>
-
+<style scoped>
+.v-data-table >>> tbody tr:hover {
+  background-color: #F5F8FA !important;
+}
+.v-data-table >>> thead th {
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em;
+  color: #616161 !important;
+}
+</style>

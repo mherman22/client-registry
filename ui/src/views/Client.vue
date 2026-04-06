@@ -1,51 +1,69 @@
 <template>
   <v-container>
+    <div class="d-flex align-center mb-4">
+      <v-breadcrumbs :items="[
+        { text: $t('menu_home'), to: '/', exact: true },
+        { text: 'Patient', disabled: false },
+        { text: uid || 'Details', disabled: true }
+      ]" class="pa-0">
+        <template v-slot:divider>
+          <v-icon small>mdi-chevron-right</v-icon>
+        </template>
+      </v-breadcrumbs>
+      <v-spacer></v-spacer>
+      <v-btn outlined small color="secondary" @click="$router.go(-1)" v-if="canGoBack" class="text-none">
+        <v-icon left small>mdi-arrow-left</v-icon>{{ $t('back') }}
+      </v-btn>
+      <v-btn outlined small color="secondary" @click="close" v-else class="text-none">
+        <v-icon left small>mdi-close</v-icon>{{ $t('close') }}
+      </v-btn>
+    </div>
+
     <v-tabs
       v-model="tab"
-      background-color="secondary"
-      dark
+      background-color="transparent"
+      color="primary"
+      class="mb-4"
     >
-      <v-tabs-slider></v-tabs-slider>
-      <v-tab href="#record"><v-icon>mdi-account</v-icon>{{  $t('record') }}</v-tab>
-      <v-tab href="#history"><v-icon>mdi-history</v-icon>{{  $t('history') }}</v-tab>
-      <v-spacer></v-spacer>
-      <v-toolbar-items>
-        <v-btn color="secondary" @click="$router.go(-1)" v-if="canGoBack">{{  $t('back') }}</v-btn>
-        <v-btn color="secondary" @click="close" v-else>{{  $t('close') }}</v-btn>
-      </v-toolbar-items>
+      <v-tab href="#record">
+        <v-icon left small>mdi-account</v-icon>{{ $t('record') }}
+      </v-tab>
+      <v-tab href="#history">
+        <v-icon left small>mdi-history</v-icon>{{ $t('history') }}
+      </v-tab>
+    </v-tabs>
+
+    <v-tabs-items v-model="tab">
       <v-tab-item value="record">
         <v-row>
-          <v-col cols="6">
-            <v-card class="mx-auto">
+          <v-col cols="12" md="6">
+            <v-card elevation="1" rounded="lg">
               <v-carousel
                 v-model="selected"
                 delimiter-icon="mdi-account"
-                next-icon="mdi-account-arrow-right"
-                prev-icon="mdi-account-arrow-left"
+                next-icon="mdi-chevron-right"
+                prev-icon="mdi-chevron-left"
                 :show-arrows-on-hover="true"
+                height="auto"
               >
                 <v-carousel-item
                   v-for="(patient, i) in match_items"
                   :key="`${i}-${patient.id}`"
                 >
-                  <v-card
-                    class="mx-auto"
-                    height="100%"
-                  >
-                    <v-toolbar
-                      color="secondary"
-                      dark
-                    >
-                      <v-toolbar-title class="font-weight-bold">
-                        CRUID: {{ uid }}
-                      </v-toolbar-title>
-                      <v-spacer />
-                      {{ selected+1 }} / {{ match_count }}
-                    </v-toolbar>
-                    <v-list dense light style="max-height: 400px; overflow-y: auto;">
+                  <v-card flat>
+                    <div class="pa-4 d-flex align-center" style="background-color: #F5F8FA;">
+                      <div>
+                        <div class="text-subtitle-2 grey--text">CRUID</div>
+                        <div class="text-h6 font-weight-medium">{{ uid }}</div>
+                      </div>
+                      <v-spacer></v-spacer>
+                      <v-chip small outlined>{{ selected+1 }} / {{ match_count }}</v-chip>
+                    </div>
+                    <v-divider></v-divider>
+                    <v-list dense style="max-height: 400px; overflow-y: auto;">
                       <v-list-item>
-                        <v-list-item-content>{{ $t('submitting_system') }}:</v-list-item-content>
-                        <v-list-item-content class="align-end">
+                        <v-list-item-content class="text-caption grey--text">{{ $t('submitting_system') }}</v-list-item-content>
+                        <v-list-item-content class="align-end font-weight-medium">
                           {{ patient.system }}
                         </v-list-item-content>
                       </v-list-item>
@@ -53,20 +71,20 @@
                         v-for="(name, j) in patient.name"
                         :key="`${j}-${name.use}`"
                       >
-                        <v-list-item-content>{{ $t('surname') }} ({{ name.use }})</v-list-item-content>
-                        <v-list-item-content class="align-end text-capitalize">
+                        <v-list-item-content class="text-caption grey--text">{{ $t('surname') }} ({{ name.use }})</v-list-item-content>
+                        <v-list-item-content class="align-end text-capitalize font-weight-medium">
                           {{ name.given.join(" ") }} {{ name.family }}
                         </v-list-item-content>
                       </v-list-item>
                       <v-list-item>
-                        <v-list-item-content>{{ $t('gender') }}:</v-list-item-content>
-                        <v-list-item-content class="align-end">
+                        <v-list-item-content class="text-caption grey--text">{{ $t('gender') }}</v-list-item-content>
+                        <v-list-item-content class="align-end font-weight-medium">
                           {{ patient.gender }}
                         </v-list-item-content>
                       </v-list-item>
                       <v-list-item>
-                        <v-list-item-content>{{ $t('birth_date') }}:</v-list-item-content>
-                        <v-list-item-content class="align-end">
+                        <v-list-item-content class="text-caption grey--text">{{ $t('birth_date') }}</v-list-item-content>
+                        <v-list-item-content class="align-end font-weight-medium">
                           {{ patient.birthdate }}
                         </v-list-item-content>
                       </v-list-item>
@@ -74,10 +92,10 @@
                         v-for="(telecom, k) in patient.telecom"
                         :key="`${k}-${telecom.system}`"
                       >
-                        <v-list-item-content class="text-capitalize">
-                          {{ telecom.system }}:
+                        <v-list-item-content class="text-caption grey--text text-capitalize">
+                          {{ telecom.system }}
                         </v-list-item-content>
-                        <v-list-item-content class="align-end">
+                        <v-list-item-content class="align-end font-weight-medium">
                           {{ telecom.value }}
                         </v-list-item-content>
                       </v-list-item>
@@ -85,8 +103,8 @@
                         v-for="(id, l) in patient.identifier"
                         :key="`${l}-${id.system}`"
                       >
-                        <v-list-item-content>{{ id.name }}:</v-list-item-content>
-                        <v-list-item-content class="align-end">
+                        <v-list-item-content class="text-caption grey--text">{{ id.name }}</v-list-item-content>
+                        <v-list-item-content class="align-end font-weight-medium">
                           {{ id.value }}
                         </v-list-item-content>
                       </v-list-item>
@@ -94,8 +112,8 @@
                         v-for="(id, l) in patient.extension"
                         :key="`${l}-${id.name}`"
                       >
-                        <v-list-item-content>{{ $t(id.name) }}:</v-list-item-content>
-                        <v-list-item-content class="align-end">
+                        <v-list-item-content class="text-caption grey--text">{{ $t(id.name) }}</v-list-item-content>
+                        <v-list-item-content class="align-end font-weight-medium">
                           {{ id.value }}
                         </v-list-item-content>
                       </v-list-item>
@@ -105,66 +123,72 @@
               </v-carousel>
             </v-card>
           </v-col>
-          <v-col cols="6">
-            <v-card class="mx-auto">
-              <v-toolbar
-                color="accent"
-                dark
-              >
-                <v-toolbar-title>{{ $t('matched_records') }} </v-toolbar-title>
-              </v-toolbar>
+          <v-col cols="12" md="6">
+            <v-card elevation="1" rounded="lg">
+              <div class="pa-4 d-flex align-center" style="background-color: #F5F8FA;">
+                <v-icon left color="accent">mdi-link-variant</v-icon>
+                <div class="text-subtitle-1 font-weight-medium">{{ $t('matched_records') }}</div>
+              </div>
+              <v-divider></v-divider>
               <v-data-table
                 v-model="breaks"
                 :headers="match_headers"
                 :items="match_items"
                 :items-per-page="20"
-                :footer-props="{ 
+                :footer-props="{
                 'items-per-page-text':this.$t('row_per_page')}"
                 :no-data-text="$t('no_data')"
-                class="elevation-1 text-capitalize"
+                class="text-capitalize"
                 item-key="fid"
                 show-select
               />
-              <v-card-actions>
+              <v-card-actions class="pa-4">
                 <v-spacer />
                 <v-btn
-                  class="warning"
+                  color="warning"
+                  depressed
+                  small
                   :disabled="breaks.length === 0 || match_items.length < 2"
                   @click="breakMatch()"
+                  class="text-none"
                 >
-                {{ $t('break_matches') }}
+                  <v-icon left small>mdi-link-off</v-icon>
+                  {{ $t('break_matches') }}
                 </v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
           <v-col cols="12">
-            <v-card class="mx-auto">
-              <v-toolbar
-                color="warning"
-                dark
-              >
-                <v-toolbar-title> {{ $t('broken_matches') }}</v-toolbar-title>
-              </v-toolbar>
+            <v-card elevation="1" rounded="lg">
+              <div class="pa-4 d-flex align-center" style="background-color: #FFF3E0;">
+                <v-icon left color="warning">mdi-link-off</v-icon>
+                <div class="text-subtitle-1 font-weight-medium">{{ $t('broken_matches') }}</div>
+              </div>
+              <v-divider></v-divider>
               <v-data-table
                 v-model="unbreaks"
                 :headers="match_headers"
                 :items="break_items"
                 :items-per-page="20"
-                :footer-props="{ 
+                :footer-props="{
                 'items-per-page-text':this.$t('row_per_page')}"
-                class="elevation-1 text-capitalize"
+                class="text-capitalize"
                 :no-data-text="$t('no_data')"
                 item-key="id"
                 show-select
               />
-              <v-card-actions>
+              <v-card-actions class="pa-4">
                 <v-spacer />
                 <v-btn
-                  class="accent"
+                  color="accent"
+                  depressed
+                  small
                   :disabled="unbreaks.length === 0"
                   @click="revertBreak()"
+                  class="text-none"
                 >
-                {{ $t('revert_break') }}
+                  <v-icon left small>mdi-undo</v-icon>
+                  {{ $t('revert_break') }}
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -174,243 +198,190 @@
       <v-tab-item value="history">
         <v-row>
           <v-col cols="12">
-            <v-card class="mx-auto">
-              <v-toolbar
-                color="secondary"
-                dark
-              >
-                <v-toolbar-title>{{  $t('history') }}</v-toolbar-title>
-              </v-toolbar>
-              <v-expansion-panels popout>
+            <v-card elevation="1" rounded="lg">
+              <div class="pa-4 d-flex align-center" style="background-color: #F5F8FA;">
+                <v-icon left color="secondary">mdi-history</v-icon>
+                <div class="text-subtitle-1 font-weight-medium">{{ $t('history') }}</div>
+              </div>
+              <v-divider></v-divider>
+              <v-expansion-panels flat>
                 <v-expansion-panel
                   v-for="(event,i) in matchEvents"
                   :key="i"
                 >
-                  <v-expansion-panel-header>
-                    <template v-if="event.type === 'submittedResource'">
-                      {{  $t('submitted_resource') }}
-                    </template>
-                    <template v-if="event.type === 'breakMatch'">
-                      {{  $t('break_matche') }}
-                    </template>
-                    <template v-if="event.type === 'unBreak'">
-                      {{  $t('revert_break') }}
-                    </template>
-                    {{  $t('event') }} {{ event.recorded | moment('Do MMM YYYY h:mm:ss a') }}</v-expansion-panel-header>
+                  <v-expansion-panel-header class="py-3">
+                    <div class="d-flex align-center">
+                      <v-chip x-small label class="mr-3" :color="event.type === 'submittedResource' ? 'primary' : event.type === 'breakMatch' ? 'warning' : 'accent'" dark>
+                        <template v-if="event.type === 'submittedResource'">{{ $t('submitted_resource') }}</template>
+                        <template v-if="event.type === 'breakMatch'">{{ $t('break_matche') }}</template>
+                        <template v-if="event.type === 'unBreak'">{{ $t('revert_break') }}</template>
+                      </v-chip>
+                      <span class="text-body-2">{{ $t('event') }} {{ event.recorded | moment('Do MMM YYYY h:mm:ss a') }}</span>
+                    </div>
+                  </v-expansion-panel-header>
                   <v-expansion-panel-content>
-                    <template v-if="event.type !== 'submittedResource'">
-                      {{  $t('user') }}: {{ event.username }} <br>
-                    </template>
-                    Operation: <b>{{ event.operation }}</b> <br>
-                    {{  $t('operation_time') }} {{ event.recorded | moment('Do MMM YYYY h:mm:ss a') }} <br>
-                    {{  $t('patient_status') }} :
-                    <template v-if="event.outcomeCode === '0'">
-                      <v-chip
-                        color="green"
-                        dark
-                      >
-                        {{ event.outcome }}
-                      </v-chip>
-                    </template>
-                    <template v-else>
-                      <v-chip
-                        color="red"
-                        dark
-                      >
-                        {{ event.outcome }}
-                      </v-chip>
-                    </template><br>
-                    IP Address: {{ event.ipaddress }} <br>
-                    <v-row v-if="event.type === 'breakMatch'">
-                      <v-col cols="4">
-                        <v-card
-                          elevation="12"
-                          color="green"
-                          hover
-                        >
-                          <v-card-text class="white--text">
-                            Break <br><b>{{ event.break }}</b>
-                          </v-card-text>
-                        </v-card>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-card
-                          elevation="12"
-                          color="red"
-                          hover
-                        >
-                          <v-card-text class="white--text">
-                            Old CRUID <br><b>{{ event.CRUID }}</b>
-                          </v-card-text>
-                        </v-card>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-card
-                          elevation="12"
-                          color="red"
-                          hover
-                        >
-                          <v-card-text class="white--text">
-                            Broken From <br>
-                            <b>
+                    <div class="pa-2">
+                      <template v-if="event.type !== 'submittedResource'">
+                        <div class="mb-1"><span class="text-caption grey--text">{{ $t('user') }}:</span> <strong>{{ event.username }}</strong></div>
+                      </template>
+                      <div class="mb-1"><span class="text-caption grey--text">Operation:</span> <strong>{{ event.operation }}</strong></div>
+                      <div class="mb-1"><span class="text-caption grey--text">{{ $t('operation_time') }}:</span> {{ event.recorded | moment('Do MMM YYYY h:mm:ss a') }}</div>
+                      <div class="mb-2">
+                        <span class="text-caption grey--text">{{ $t('patient_status') }}:</span>
+                        <v-chip x-small :color="event.outcomeCode === '0' ? 'success' : 'error'" dark class="ml-1">
+                          {{ event.outcome }}
+                        </v-chip>
+                      </div>
+                      <div class="mb-2"><span class="text-caption grey--text">IP Address:</span> {{ event.ipaddress }}</div>
+                      <v-row v-if="event.type === 'breakMatch'">
+                        <v-col cols="4">
+                          <v-card outlined rounded="lg" class="pa-3">
+                            <div class="text-caption grey--text mb-1">Break</div>
+                            <div class="font-weight-medium">{{ event.break }}</div>
+                          </v-card>
+                        </v-col>
+                        <v-col cols="4">
+                          <v-card outlined rounded="lg" class="pa-3">
+                            <div class="text-caption grey--text mb-1">Old CRUID</div>
+                            <div class="font-weight-medium">{{ event.CRUID }}</div>
+                          </v-card>
+                        </v-col>
+                        <v-col cols="4">
+                          <v-card outlined rounded="lg" class="pa-3">
+                            <div class="text-caption grey--text mb-1">Broken From</div>
+                            <div class="font-weight-medium">
                               <template v-for="breakFrom in event.breakFrom">
-                                => {{ breakFrom }}
+                                {{ breakFrom }}<br :key="breakFrom">
                               </template>
-                            </b>
-                          </v-card-text>
-                        </v-card>
-                      </v-col>
-                    </v-row>
-                    <v-row v-if="event.type === 'unBreak'">
-                      <v-col cols="4">
-                        <v-card
-                          elevation="12"
-                          color="green"
-                          hover
-                        >
-                          <v-card-text class="white--text">
-                            Reverting <br><b>{{ event.unBreak }}</b>
-                          </v-card-text>
-                        </v-card>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-card
-                          elevation="12"
-                          color="red"
-                          hover
-                        >
-                          <v-card-text class="white--text">
-                            Reverting From CRUID <br><b>{{ event.unBreakFromCRUID }}</b>
-                          </v-card-text>
-                        </v-card>
-                      </v-col>
-                      <v-col cols="4">
-                        <v-card
-                          elevation="12"
-                          color="red"
-                          hover
-                        >
-                          <v-card-text class="white--text">
-                            Reverting From <br>
-                            <b>
+                            </div>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                      <v-row v-if="event.type === 'unBreak'">
+                        <v-col cols="4">
+                          <v-card outlined rounded="lg" class="pa-3">
+                            <div class="text-caption grey--text mb-1">Reverting</div>
+                            <div class="font-weight-medium">{{ event.unBreak }}</div>
+                          </v-card>
+                        </v-col>
+                        <v-col cols="4">
+                          <v-card outlined rounded="lg" class="pa-3">
+                            <div class="text-caption grey--text mb-1">Reverting From CRUID</div>
+                            <div class="font-weight-medium">{{ event.unBreakFromCRUID }}</div>
+                          </v-card>
+                        </v-col>
+                        <v-col cols="4">
+                          <v-card outlined rounded="lg" class="pa-3">
+                            <div class="text-caption grey--text mb-1">Reverting From</div>
+                            <div class="font-weight-medium">
                               <template v-for="unBreakFrom in event.unBreakFrom">
-                                => {{ unBreakFrom }}
+                                {{ unBreakFrom }}<br :key="unBreakFrom">
                               </template>
-                            </b>
-                          </v-card-text>
-                        </v-card>
-                      </v-col>
-                    </v-row>
-                    <v-row
-                      v-for="(detail,j) in event.matchData"
-                      v-else
-                      :key="j"
-                    >
-                      <v-col cols="6">
-                        <v-card
-                          elevation="12"
-                          hover
-                        >
-                          <v-card-title primary-title>
-                            Decision Rule {{ ++j }} => Matching Type: &nbsp; <b> {{ detail.matchingType }}</b>
-                          </v-card-title>
-                          <v-card-text>
+                            </div>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                      <v-row
+                        v-for="(detail,j) in event.matchData"
+                        v-else
+                        :key="j"
+                      >
+                        <v-col cols="6">
+                          <v-card outlined rounded="lg">
+                            <div class="pa-3">
+                              <div class="text-subtitle-2 font-weight-medium mb-2">
+                                Decision Rule {{ ++j }} - Matching Type: <strong>{{ detail.matchingType }}</strong>
+                              </div>
+                            </div>
                             <v-data-table
                               :headers="matchRuleHeaders"
                               :items="detail.decisionRule"
                               :items-per-page="20"
                               item-key="id"
+                              dense
                             >
                               <template v-slot:item.details="{ item }">
-                                <template v-if="item.details.algorithm">
-                                  Algorithm - {{ item.details.algorithm }}<br>
-                                </template>
-                                <template v-if="item.details.threshold">
-                                  Threshold
-                                  <v-chip
-                                    color="red"
-                                    dark
-                                  >
-                                    {{ item.details.threshold }}
-                                  </v-chip><br>
-                                </template>
-                                <template v-if="detail.matchingType === 'probabilistic'">
-                                  <b>mValue</b>
-                                  <v-chip
-                                    color="green"
-                                    dark
-                                  >
-                                    {{ item.details.mValue }}
-                                  </v-chip> <b>- uValue</b>
-                                  <v-chip
-                                    color="blue"
-                                    dark
-                                  >
-                                    {{ item.details.uValue }}
-                                  </v-chip><br>
-                                </template>
-                                <template v-if="item.details.fhirpath">
-                                  FHIR Path - {{ item.details.fhirpath }}
-                                </template>
-                                <br><br>
+                                <div class="py-1">
+                                  <template v-if="item.details.algorithm">
+                                    <span class="text-caption">Algorithm:</span> {{ item.details.algorithm }}<br>
+                                  </template>
+                                  <template v-if="item.details.threshold">
+                                    <span class="text-caption">Threshold:</span>
+                                    <v-chip x-small color="error" dark class="ml-1">{{ item.details.threshold }}</v-chip><br>
+                                  </template>
+                                  <template v-if="detail.matchingType === 'probabilistic'">
+                                    <span class="text-caption">mValue:</span>
+                                    <v-chip x-small color="success" dark class="ml-1">{{ item.details.mValue }}</v-chip>
+                                    <span class="text-caption ml-2">uValue:</span>
+                                    <v-chip x-small color="primary" dark class="ml-1">{{ item.details.uValue }}</v-chip><br>
+                                  </template>
+                                  <template v-if="item.details.fhirpath">
+                                    <span class="text-caption">FHIR Path:</span> {{ item.details.fhirpath }}
+                                  </template>
+                                </div>
                               </template>
                             </v-data-table>
-                          </v-card-text>
-                        </v-card>
-                      </v-col>
-                      <v-col cols="6">
-                        <v-switch
-                          v-model="advancedView"
-                          label="View Advanced Details"
-                        />
-                        <template v-if="advancedView">
-                          <v-card>
-                            <v-card-text>
-                              <v-textarea
-                                filled
-                                color="deep-purple"
-                                label="Elasticsearch Query"
-                                rows="10"
-                                :value="detail.query"
-                              />
-                            </v-card-text>
                           </v-card>
-                          <v-card>
-                            <v-card-text>
-                              <v-textarea
-                                filled
-                                color="deep-purple"
-                                label="Elasticsearch Automatches Results"
-                                rows="10"
-                                :value="detail.autoMatches"
-                              />
-                            </v-card-text>
-                          </v-card>
-                          <v-card>
-                            <v-card-text>
-                              <v-textarea
-                                filled
-                                color="deep-purple"
-                                label="Elasticsearch Potential Matches Results"
-                                rows="10"
-                                :value="detail.potentialMatches"
-                              />
-                            </v-card-text>
-                          </v-card>
-                          <v-card>
-                            <v-card-text>
-                              <v-textarea
-                                filled
-                                color="deep-purple"
-                                label="Elasticsearch Conflicts Matches Results"
-                                rows="10"
-                                :value="detail.conflictsMatchResults"
-                              />
-                            </v-card-text>
-                          </v-card>
-                        </template>
-                      </v-col>
-                    </v-row>
+                        </v-col>
+                        <v-col cols="6">
+                          <v-switch
+                            v-model="advancedView"
+                            label="View Advanced Details"
+                            dense
+                          />
+                          <template v-if="advancedView">
+                            <v-card outlined rounded="lg" class="mb-3">
+                              <v-card-text>
+                                <v-textarea
+                                  outlined
+                                  dense
+                                  color="primary"
+                                  label="Elasticsearch Query"
+                                  rows="8"
+                                  :value="detail.query"
+                                />
+                              </v-card-text>
+                            </v-card>
+                            <v-card outlined rounded="lg" class="mb-3">
+                              <v-card-text>
+                                <v-textarea
+                                  outlined
+                                  dense
+                                  color="primary"
+                                  label="Elasticsearch Automatches Results"
+                                  rows="8"
+                                  :value="detail.autoMatches"
+                                />
+                              </v-card-text>
+                            </v-card>
+                            <v-card outlined rounded="lg" class="mb-3">
+                              <v-card-text>
+                                <v-textarea
+                                  outlined
+                                  dense
+                                  color="primary"
+                                  label="Elasticsearch Potential Matches Results"
+                                  rows="8"
+                                  :value="detail.potentialMatches"
+                                />
+                              </v-card-text>
+                            </v-card>
+                            <v-card outlined rounded="lg">
+                              <v-card-text>
+                                <v-textarea
+                                  outlined
+                                  dense
+                                  color="primary"
+                                  label="Elasticsearch Conflicts Matches Results"
+                                  rows="8"
+                                  :value="detail.conflictsMatchResults"
+                                />
+                              </v-card-text>
+                            </v-card>
+                          </template>
+                        </v-col>
+                      </v-row>
+                    </div>
                   </v-expansion-panel-content>
                 </v-expansion-panel>
               </v-expansion-panels>
@@ -418,7 +389,7 @@
           </v-col>
         </v-row>
       </v-tab-item>
-    </v-tabs>
+    </v-tabs-items>
   </v-container>
 </template>
 
@@ -695,7 +666,7 @@ export default {
                       name: patient.name,
                       telecom: patient.telecom,
                       identifier: identifiers,
-                      extension: extensions,                      
+                      extension: extensions,
                       family: name.family,
                       given: name.given.join(" "),
                       phone: phone
@@ -711,7 +682,7 @@ export default {
                       name: patient.name,
                       telecom: patient.telecom,
                       identifier: identifiers,
-                      extension: extensions,                      
+                      extension: extensions,
                       family: name.family,
                       given: name.given.join(" "),
                       phone: phone
@@ -881,3 +852,15 @@ export default {
   }
 };
 </script>
+<style scoped>
+.v-data-table >>> tbody tr:hover {
+  background-color: #F5F8FA !important;
+}
+.v-data-table >>> thead th {
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em;
+  color: #616161 !important;
+}
+</style>

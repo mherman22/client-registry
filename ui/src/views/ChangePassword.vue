@@ -1,41 +1,31 @@
 <template>
   <v-container>
-    <v-layout
-      row
-      wrap
-    >
-      <v-spacer />
-      <v-flex xs6>
-        <v-card
-          class="mx-auto"
-          style="max-width: 500px;"
-        >
-          <v-system-bar
-            color="primary"
-            dark
-          />
-          <v-toolbar
-            color="secondary"
-            cards
-            dark
-            flat
-          >
-            <v-card-title class="title font-weight-regular">{{ $t('account_change_password') }}</v-card-title>
-          </v-toolbar>
+    <v-row justify="center">
+      <v-col cols="12" sm="8" md="6" lg="5">
+        <v-card elevation="1" rounded="lg">
+          <div class="pa-4" style="background-color: #E3F2FD;">
+            <div class="d-flex align-center">
+              <v-icon left color="primary">mdi-lock-reset</v-icon>
+              <div class="text-h6 font-weight-medium">{{ $t('account_change_password') }}</div>
+            </div>
+          </div>
+          <v-divider></v-divider>
           <v-form
             ref="form"
-            class="pa-3 pt-4"
+            class="pa-6"
           >
-          <v-text-field
+            <v-text-field
               required
               @blur="$v.password.$touch()"
               @change="$v.password.$touch()"
               :error-messages="passwordErrors"
               v-model="password"
               type="password"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :label="$t('current_password')"
+              class="mb-1"
             />
             <v-text-field
               required
@@ -44,47 +34,49 @@
               :error-messages="newpasswordErrors"
               v-model="newpassword"
               type="password"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :label="$t('new_passord')"
+              class="mb-1"
             />
             <v-text-field
               v-model="retype_newpassword"
               :label="$t('retype_password')"
               required
               type="password"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :error-messages="retype_newpasswordErrors"
               @blur="$v.retype_newpassword.$touch()"
               @change="$v.retype_newpassword.$touch()"
             />
           </v-form>
           <v-divider />
-          <v-card-actions>
+          <v-card-actions class="pa-4">
             <v-btn
               text
               @click="$refs.form.reset()"
+              class="text-none"
+              color="secondary"
             >
-              <v-icon>mdi-clear</v-icon>{{ $t('clear') }}
+              <v-icon left small>mdi-eraser</v-icon>{{ $t('clear') }}
             </v-btn>
             <v-spacer />
             <v-btn
               depressed
               :disabled="$v.$invalid"
-              class="white--text"
-              color="deep-purple accent-4"
+              color="primary"
               @click="changePassword()"
+              class="text-none"
             >
-              <v-icon left>
-                mdi-language
-              </v-icon>{{ $t('password_change') }}
+              <v-icon left small>mdi-lock-check</v-icon>{{ $t('password_change') }}
             </v-btn>
           </v-card-actions>
         </v-card>
-      </v-flex>
-      <v-spacer />
-    </v-layout>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 <script>

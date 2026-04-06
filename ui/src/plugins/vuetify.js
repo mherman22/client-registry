@@ -11,25 +11,24 @@ export default new Vuetify({
     themes: {
       light: {
         primary: {
-          base: "#569fd3",
-          darken1: "0d3552",
-          darken2: "011b2d",
-          lighten1: "ddecf6",
-          lighten2: "f4f7f9"
+          base: "#1976D2",
+          darken1: "#1565C0",
+          darken2: "#0D47A1",
+          lighten1: "#BBDEFB",
+          lighten2: "#E3F2FD"
         },
         secondary: {
-          base: "#5f6062",
-          darken1: "04070e",
-          lighten1: "e5e5e5"
+          base: "#424242",
+          darken1: "#212121",
+          lighten1: "#757575"
         },
-        accent: "#78496a",
-        error: "#b32317",
-        info: "#005595",
-        success: "#8a8d35",
-        warning: "#d06f1a"
+        accent: "#00BCD4",
+        error: "#F44336",
+        info: "#1976D2",
+        success: "#4CAF50",
+        warning: "#FF9800",
+        background: "#FAFBFC"
       }
     }
   }
 });
-
-

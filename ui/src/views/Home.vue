@@ -1,45 +1,69 @@
 <template>
-  <v-card>
-    <v-card-title>
-      <v-spacer />
-      <template v-for="filter in filters">
-        <searchTerm
-          :label="filter.label" 
-          :key="filter.searchparameter" 
-          :expression="filter.searchparameter" 
-          :binding="filter.binding"
-          @termChange="searchData"
-        />
-      </template>
-      <v-autocomplete
-        v-model="pos"
-        :items="$store.state.clients"
-        item-text="displayName"
-        item-value="id"
-        clearable
-        :label="$t('source')"
-        hide-details
-        outlined
-        shaped
-        @click:clear="searchPOS"
-        @change="searchPOS"
-      />
-    </v-card-title>
-    <v-data-table
-      style="cursor: pointer"
-      :headers="headers"
-      :items="patients"
-      :options.sync="options"
-      :server-items-length="totalPatients"
-      :footer-props="{ 
-      'items-per-page-options': [5,10,20,50] ,
-      'items-per-page-text':this.$t('row_per_page')}"
-      :no-data-text="$t('no_data')"
-      :loading="loading"
-      class="elevation-1"
-      @click:row="clickIt"
-    />
-  </v-card>
+  <div>
+    <div class="d-flex align-center mb-4">
+      <div>
+        <div class="text-h5 font-weight-medium">{{ $t('menu_home') }}</div>
+        <div class="text-subtitle-2 grey--text">Patient Registry</div>
+      </div>
+      <v-spacer></v-spacer>
+    </div>
+    <v-card elevation="1" rounded="lg">
+      <v-card-title class="pa-4">
+        <v-row align="center" no-gutters>
+          <v-col cols="12" md="auto" class="d-flex flex-wrap align-center">
+            <template v-for="filter in filters">
+              <searchTerm
+                :label="filter.label"
+                :key="filter.searchparameter"
+                :expression="filter.searchparameter"
+                :binding="filter.binding"
+                @termChange="searchData"
+              />
+            </template>
+          </v-col>
+          <v-spacer></v-spacer>
+          <v-col cols="12" md="3">
+            <v-autocomplete
+              v-model="pos"
+              :items="$store.state.clients"
+              item-text="displayName"
+              item-value="id"
+              clearable
+              :label="$t('source')"
+              hide-details
+              outlined
+              dense
+              rounded
+              @click:clear="searchPOS"
+              @change="searchPOS"
+            />
+          </v-col>
+        </v-row>
+      </v-card-title>
+      <v-divider></v-divider>
+      <v-data-table
+        style="cursor: pointer"
+        :headers="headers"
+        :items="patients"
+        :options.sync="options"
+        :server-items-length="totalPatients"
+        :footer-props="{
+        'items-per-page-options': [5,10,20,50] ,
+        'items-per-page-text':this.$t('row_per_page')}"
+        :no-data-text="$t('no_data')"
+        :loading="loading"
+        @click:row="clickIt"
+      >
+        <template v-slot:no-data>
+          <div class="text-center pa-8">
+            <v-icon size="64" color="grey lighten-1">mdi-account-search-outline</v-icon>
+            <div class="text-h6 grey--text mt-3">{{ $t('no_data') }}</div>
+            <div class="text-subtitle-2 grey--text text--lighten-1 mt-1">Try adjusting your search or filters</div>
+          </div>
+        </template>
+      </v-data-table>
+    </v-card>
+  </div>
 </template>
 
 <script>
@@ -184,7 +208,7 @@ export default {
               let searchparameter = disp.extension && disp.extension.find((ext) => {
                 return ext.url === 'searchparameter'
               })
-          
+
               let translatedHeader ;
               if (label.valueString === headersNames.givenName) {
                 translatedHeader = this.$t('given_names');
@@ -293,3 +317,15 @@ export default {
   }
 };
 </script>
+<style scoped>
+.v-data-table >>> tbody tr:hover {
+  background-color: #F5F8FA !important;
+}
+.v-data-table >>> thead th {
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em;
+  color: #616161 !important;
+}
+</style>

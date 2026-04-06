@@ -1,120 +1,129 @@
 <template>
   <v-container>
     <v-navigation-drawer
-      color="secondary"
+      color="white"
       right
       permanent
       clipped
       app
-      >
-      <v-list>
-        <v-list-item>
-          <v-btn 
-            @click="showMatrix = true; $vuetify.goTo($refs.scoreMatrix);" 
-            color="accent"
-          >{{ $t('show_scores_matrix') }}
-          </v-btn>
-        </v-list-item>
-        <v-list-item>
-          <v-btn
-            @click="showReview = true"
-            color="success"
-          >{{ $t('save_changes') }}
-          </v-btn>
-        </v-list-item>
-        <v-divider></v-divider>
-        <v-list-item>
-          <h3 class="white--text">Options</h3>
-        </v-list-item>
-        <v-list-item>
-          <v-switch v-model="useNickname" dark :label="$t('simplified_naming')" @change="setupCRIDList"></v-switch>
-        </v-list-item>
-        <v-list-item>
-          <v-switch v-model="includeCRID" dark :label="$t('include_real_crid')" @change="setupCRIDList"></v-switch>
-        </v-list-item>
-      </v-list>
+      width="280"
+    >
+      <div class="pa-4">
+        <div class="text-subtitle-2 font-weight-medium mb-4 grey--text text--darken-2">Actions</div>
+        <v-btn
+          block
+          depressed
+          color="accent"
+          dark
+          class="mb-3 text-none"
+          @click="showMatrix = true; $vuetify.goTo($refs.scoreMatrix);"
+        >
+          <v-icon left small>mdi-table</v-icon>
+          {{ $t('show_scores_matrix') }}
+        </v-btn>
+        <v-btn
+          block
+          depressed
+          color="success"
+          dark
+          class="mb-4 text-none"
+          @click="showReview = true"
+        >
+          <v-icon left small>mdi-content-save</v-icon>
+          {{ $t('save_changes') }}
+        </v-btn>
+        <v-divider class="mb-4"></v-divider>
+        <div class="text-subtitle-2 font-weight-medium mb-3 grey--text text--darken-2">Options</div>
+        <v-switch v-model="useNickname" :label="$t('simplified_naming')" @change="setupCRIDList" dense hide-details class="mt-0 mb-2"></v-switch>
+        <v-switch v-model="includeCRID" :label="$t('include_real_crid')" @change="setupCRIDList" dense hide-details class="mt-0"></v-switch>
+      </div>
     </v-navigation-drawer>
     <v-dialog :value="showReview" max-width="900" persistent>
-      <v-card light>
-        <v-card-title>
-          <v-toolbar color="primary" dark>
-            <v-toolbar-title class="font-weight-bold">
-              {{ $t('review_changes') }}
-            </v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-toolbar-items>
-              <v-btn @click="showReview = false" icon><v-icon>mdi-close</v-icon></v-btn>
-            </v-toolbar-items>
-          </v-toolbar>
-        </v-card-title>
-        <v-card-text v-if="!bucketsModified">
+      <v-card rounded="lg">
+        <div class="pa-4 d-flex align-center" style="background-color: #E3F2FD;">
+          <v-icon left color="primary">mdi-clipboard-check-outline</v-icon>
+          <div class="text-h6 font-weight-medium">{{ $t('review_changes') }}</div>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="showReview = false"><v-icon>mdi-close</v-icon></v-btn>
+        </div>
+        <v-divider></v-divider>
+        <v-card-text v-if="!bucketsModified" class="pa-6 text-body-1">
           {{ $t('confirm_remove_flag') }}
         </v-card-text>
         <v-data-table
           v-else
           :headers="review_headers"
           :items="review_list"
-          class="elevation-1"
           :disable-pagination="true"
           :hide-default-footer="true"
           :no-data-text="$t('no_data')"
-          >
+        >
         </v-data-table>
-        <v-card-actions>
+        <v-divider></v-divider>
+        <v-card-actions class="pa-4">
           <v-btn
+            outlined
             color="error"
             @click="showReview = false"
+            class="text-none"
           >
-          {{ $t('cancel') }}
+            {{ $t('cancel') }}
           </v-btn>
           <v-spacer></v-spacer>
           <v-btn
+            depressed
             color="success"
             @click="saveChanges"
+            class="text-none"
           >
-          {{ $t('save') }}
+            <v-icon left small>mdi-check</v-icon>
+            {{ $t('save') }}
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <v-dialog :value="cohortPopup" width="500">
-      <v-card light>
-        <v-card-title class="secondary lighten-1" color="white" primary-title>
-          {{ $t('move_all') }}
-        </v-card-title>
-        {{ $t('confirm_move_all_to_new') }}
-        <v-card-text>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="info" @click="copyClient">{{ $t('move_one') }}</v-btn>
+      <v-card rounded="lg">
+        <div class="pa-4" style="background-color: #F5F8FA;">
+          <div class="text-h6 font-weight-medium">{{ $t('move_all') }}</div>
+          <div class="text-body-2 grey--text mt-1">{{ $t('confirm_move_all_to_new') }}</div>
+        </div>
+        <v-divider></v-divider>
+        <v-card-actions class="pa-4">
+          <v-btn depressed color="primary" @click="copyClient" class="text-none">
+            <v-icon left small>mdi-account-arrow-right</v-icon>
+            {{ $t('move_one') }}
+          </v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="warning" @click="copyCohort">{{ $t('move_all_records') }}</v-btn>
+          <v-btn depressed color="warning" @click="copyCohort" class="text-none">
+            <v-icon left small>mdi-account-group</v-icon>
+            {{ $t('move_all_records') }}
+          </v-btn>
         </v-card-actions>
-        <v-card-actions>
+        <v-card-actions class="px-4 pb-4 pt-0">
           <v-spacer></v-spacer>
-          <v-btn color="error" @click="copyCohortInfo = null; cohortPopup = false">{{ $t('cancel') }}</v-btn>
+          <v-btn outlined color="error" @click="copyCohortInfo = null; cohortPopup = false" class="text-none">
+            {{ $t('cancel') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <v-row v-for="(list, uid) in crids" :key="uid">
       <v-col cols="12">
-        <v-card>
-          <v-card-title>
-            <v-toolbar color="primary darken-1" dark>
-              <v-toolbar-title class="font-weight-bold" v-if="useNickname">
-                {{ nickname[uid] }}
-              </v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-toolbar-title class="font-weight-bold">
-                CR ID: {{ uid }}
-              </v-toolbar-title>
-            </v-toolbar>
-          </v-card-title>
+        <v-card elevation="1" rounded="lg">
+          <div class="pa-4 d-flex align-center" style="background-color: #E3F2FD;">
+            <v-icon left color="primary">mdi-account-group</v-icon>
+            <div class="font-weight-medium" v-if="useNickname">
+              {{ nickname[uid] }}
+            </div>
+            <v-spacer></v-spacer>
+            <v-chip small outlined color="primary">CR ID: {{ uid }}</v-chip>
+          </div>
+          <v-divider></v-divider>
           <v-data-table
             style="cursor: pointer"
             :headers="headers"
             :items="list"
-            class="elevation-1"
             :disable-pagination="true"
             :hide-default-footer="true"
             :loading="loading"
@@ -130,16 +139,17 @@
                 @change="moveClient($event, item)"
                 :key="item.source+item.source_id"
                 dense
+                outlined
               ></v-select>
             </template>
             <template v-slot:item.source_id="{ item }">
-              <a @click="goTo('client',{ clientId: item.uid, sourceId: item.source_id })">{{ item.source_id }}</a>
+              <a @click="goTo('client',{ clientId: item.uid, sourceId: item.source_id })" class="primary--text text-decoration-none font-weight-medium">{{ item.source_id }}</a>
             </template>
             <template v-slot:item.view="{ item }">
-              <v-switch v-model="showCard[item.source_id]" hide-details @change="if ( showCard[item.source_id] ) $vuetify.goTo($refs.fullCards)"></v-switch>
+              <v-switch v-model="showCard[item.source_id]" hide-details dense @change="if ( showCard[item.source_id] ) $vuetify.goTo($refs.fullCards)"></v-switch>
             </template>
             <template v-slot:item.score="{ item }">
-              <v-switch v-model="showScore[item.source_id]" hide-details></v-switch>
+              <v-switch v-model="showScore[item.source_id]" hide-details dense></v-switch>
             </template>
             <template v-slot:item.birthDate="{ item }">
               {{ item.birthDate | moment("MMMM DD YYYY") }}
@@ -150,23 +160,18 @@
     </v-row>
     <v-row ref="scoreMatrix">
       <v-col cols="12" v-if="showMatrix">
-        <v-card>
-          <v-card-title>
-            <v-toolbar color="accent" dark>
-              <v-toolbar-title class="font-weight-bold">
-                {{ $t('scores_matrix') }}
-              </v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-toolbar-items>
-                <v-btn icon @click="showMatrix = false"><v-icon>mdi-close</v-icon></v-btn>
-              </v-toolbar-items>
-            </v-toolbar>
-          </v-card-title>
+        <v-card elevation="1" rounded="lg">
+          <div class="pa-4 d-flex align-center" style="background-color: #E0F7FA;">
+            <v-icon left color="accent">mdi-table</v-icon>
+            <div class="text-subtitle-1 font-weight-medium">{{ $t('scores_matrix') }}</div>
+            <v-spacer></v-spacer>
+            <v-btn icon small @click="showMatrix = false"><v-icon small>mdi-close</v-icon></v-btn>
+          </div>
+          <v-divider></v-divider>
           <v-data-table
             style="cursor: pointer"
             :headers="score_headers"
             :items="score_matrix"
-            class="elevation-1"
             :disable-pagination="true"
             :hide-default-footer="true"
             >
@@ -176,49 +181,47 @@
     </v-row>
     <v-row ref="fullCards">
       <template v-for="data in resolves">
-        <v-col cols="4" v-if="showCard[data.source_id]" :key="data.source_id">
+        <v-col cols="12" md="4" v-if="showCard[data.source_id]" :key="data.source_id">
           <v-card
-            class="mx-auto"
-            light
+            elevation="1"
+            rounded="lg"
             :id="data.source+data.source_id"
             :ref="data.source+data.source_id"
             >
-            <v-toolbar color="secondary" dark>
-              <v-toolbar-title class="font-weight-bold">
-                Source: {{ data.source }} {{ data.source_id }}
-              </v-toolbar-title>
+            <div class="pa-4 d-flex align-center" style="background-color: #F5F8FA;">
+              <div>
+                <div class="text-caption grey--text">Source</div>
+                <div class="font-weight-medium">{{ data.source }} {{ data.source_id }}</div>
+              </div>
               <v-spacer></v-spacer>
-              <v-toolbar-items>
-                <v-btn icon @click="showCard[data.source_id] = false"><v-icon>mdi-close</v-icon></v-btn>
-              </v-toolbar-items>
-            </v-toolbar>
+              <v-btn icon small @click="showCard[data.source_id] = false"><v-icon small>mdi-close</v-icon></v-btn>
+            </div>
+            <v-divider></v-divider>
             <v-list
               dense
-              light
-              height="100%"
               >
               <v-list-item
               v-for="(val, key) in fields"
               :key="key">
-                <v-list-item-content>{{val}}:</v-list-item-content>
-                <v-list-item-content class="align-end" v-if="dates[key]">
+                <v-list-item-content class="text-caption grey--text">{{val}}</v-list-item-content>
+                <v-list-item-content class="align-end font-weight-medium" v-if="dates[key]">
                   {{ data[key] | moment("MMMM Do YYYY") }}
                 </v-list-item-content>
-                <v-list-item-content class="align-end" v-else>
+                <v-list-item-content class="align-end font-weight-medium" v-else>
                   {{ data[key] }}
                 </v-list-item-content>
               </v-list-item>
               <v-divider></v-divider>
               <v-list-item>
-                <h5 class="text-uppercase">Scores</h5>
+                <div class="text-subtitle-2 font-weight-medium grey--text text--darken-2 py-2">Scores</div>
               </v-list-item>
               <v-list-item
                 v-for="(score,source_id) in filteredScores(data.scores)"
                 :key="data.source_id+'-'+source_id"
                 >
-                <v-list-item-content>{{getSource(source_id)}}</v-list-item-content>
-                <v-list-item-content>{{source_id}}:</v-list-item-content>
-                <v-list-item-content>{{score}}</v-list-item-content>
+                <v-list-item-content class="text-caption grey--text">{{getSource(source_id)}}</v-list-item-content>
+                <v-list-item-content class="text-caption grey--text">{{source_id}}</v-list-item-content>
+                <v-list-item-content class="font-weight-medium">{{score}}</v-list-item-content>
               </v-list-item>
 
             </v-list>
@@ -330,7 +333,7 @@ export default {
       if (parentObject) {
         responseData = responseData.filter(item => item.uid === parentObject.uid);
       }
-      
+
     }
         let extRegexPattern = /^extension_/;
 
@@ -516,3 +519,15 @@ export default {
   }
 };
 </script>
+<style scoped>
+.v-data-table >>> tbody tr:hover {
+  background-color: #F5F8FA !important;
+}
+.v-data-table >>> thead th {
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em;
+  color: #616161 !important;
+}
+</style>

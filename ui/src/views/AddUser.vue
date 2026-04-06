@@ -1,30 +1,18 @@
 <template>
   <v-container>
-    <v-layout
-      row
-      wrap
-    >
-      <v-spacer />
-      <v-flex xs6>
-        <v-card
-          class="mx-auto"
-          style="max-width: 500px;"
-        >
-          <v-system-bar
-            color="primary"
-            dark
-          />
-          <v-toolbar
-            color="secondary"
-            cards
-            dark
-            flat
-          >
-            <v-card-title class="title font-weight-regular">{{ $t('account_add') }}</v-card-title>
-          </v-toolbar>
+    <v-row justify="center">
+      <v-col cols="12" sm="8" md="6" lg="5">
+        <v-card elevation="1" rounded="lg">
+          <div class="pa-4" style="background-color: #E3F2FD;">
+            <div class="d-flex align-center">
+              <v-icon left color="primary">mdi-account-plus-outline</v-icon>
+              <div class="text-h6 font-weight-medium">{{ $t('account_add') }}</div>
+            </div>
+          </div>
+          <v-divider></v-divider>
           <v-form
             ref="form"
-            class="pa-3 pt-4"
+            class="pa-6"
           >
             <v-text-field
               required
@@ -32,15 +20,19 @@
               @change="$v.firstName.$touch()"
               :error-messages="firstnameErrors"
               v-model="firstName"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :label="$t('given_names')"
+              class="mb-1"
             />
             <v-text-field
               v-model="otherName"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :label="$t('middle_names')"
+              class="mb-1"
             />
             <v-text-field
               required
@@ -48,9 +40,11 @@
               @change="$v.surname.$touch()"
               :error-messages="surnameErrors"
               v-model="surname"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :label="$t('surname')"
+              class="mb-1"
             />
             <v-text-field
               required
@@ -58,9 +52,11 @@
               @change="$v.surname.$touch()"
               :error-messages="usernameErrors"
               v-model="userName"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :label="$t('username')"
+              class="mb-1"
             />
             <v-autocomplete
               v-model="role"
@@ -70,9 +66,11 @@
               @blur="$v.role.$touch()"
               @change="$v.role.$touch()"
               :error-messages="roleErrors"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               label="Role"
+              class="mb-1"
             ></v-autocomplete>
             <v-text-field
               required
@@ -81,47 +79,49 @@
               :error-messages="passwordErrors"
               v-model="password"
               type="password"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :label="$t('labels_Password')"
+              class="mb-1"
             />
             <v-text-field
               v-model="retype_password"
               :label="$t('retype_password')"
               required
               type="password"
-              filled
-              color="deep-purple"
+              outlined
+              dense
+              color="primary"
               :error-messages="retype_passwordErrors"
               @blur="$v.retype_password.$touch()"
               @change="$v.retype_password.$touch()"
             />
           </v-form>
           <v-divider />
-          <v-card-actions>
+          <v-card-actions class="pa-4">
             <v-btn
               text
               @click="$refs.form.reset()"
+              class="text-none"
+              color="secondary"
             >
-              <v-icon>mdi-clear</v-icon>{{ $t('clear') }}
+              <v-icon left small>mdi-eraser</v-icon>{{ $t('clear') }}
             </v-btn>
             <v-spacer />
             <v-btn
               depressed
               :disabled="$v.$invalid"
-              class="white--text"
-              color="deep-purple accent-4"
+              color="primary"
               @click="addUser()"
+              class="text-none"
             >
-              <v-icon left>
-                mdi-language
-              </v-icon>{{ $t('user.add') }}
+              <v-icon left small>mdi-account-plus</v-icon>{{ $t('user.add') }}
             </v-btn>
           </v-card-actions>
         </v-card>
-      </v-flex>
-      <v-spacer />
-    </v-layout>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 <script>
