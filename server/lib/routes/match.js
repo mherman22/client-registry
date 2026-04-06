@@ -1337,7 +1337,7 @@ router.post('/matches', async (req, res) => {
       const results = await Promise.all(fetchPatientPromises);
       return results;
     } catch (error) {
-      console.error(error);
+      logger.error('Error fetching patients: ' + error);
       throw new Error('Error fetching patients');
     }
 }
@@ -1347,24 +1347,32 @@ async function transformToFhirObject() {
         const autoResults = await getPatientById(matchResults.auto, 0.9, 'certain');
         const potentialResults = await getPatientById(matchResults.potential, 0.2, 'potential');
 
-        console.log('Auto Results Bundle: ', JSON.stringify(autoResults));
-        console.log('Potential Results Bundle: ', JSON.stringify(potentialResults));
+        const matchEntries = [...autoResults, ...potentialResults].map(patient => ({
+          fullUrl: `Patient/${patient.id}`,
+          resource: patient,
+          search: patient.search
+        }));
 
-        const combinedEntries = [...autoResults, ...potentialResults];
+        // Include the submitted patient as the first entry per FHIR $match spec
+        const submittedEntry = {
+          fullUrl: patientJson.id ? `Patient/${patientJson.id}` : undefined,
+          resource: patientJson,
+          search: { mode: 'include' }
+        };
 
         const combinedBundle = {
           resourceType: 'Bundle',
           id: uuid4(),
           meta: { lastUpdated: new Date().toISOString() },
           type: 'searchset',
-          total: combinedEntries.length,
-          entry: combinedEntries
-      };
+          total: matchEntries.length,
+          entry: [submittedEntry, ...matchEntries]
+        };
 
-      console.log('Combined Results Bundle: ', JSON.stringify(combinedBundle));
-      return combinedBundle;
+        return combinedBundle;
     } catch (error) {
-        console.error('Error in transforming to FHIR Object: ', error);
+        logger.error('Error in transforming to FHIR Object: ' + error.message);
+        throw error;
     }
 }});
 
