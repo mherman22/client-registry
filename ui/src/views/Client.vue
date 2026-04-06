@@ -10,9 +10,6 @@
       <v-tab href="#history"><v-icon>mdi-history</v-icon>{{  $t('history') }}</v-tab>
       <v-spacer></v-spacer>
       <v-toolbar-items>
-        <v-btn v-if="uid === '6f2eac1b-5b1d-49ce-a4b7-f9089128f836'" color="warning" @click="$router.push('/resolve/590-57-2820')">
-          <v-badge icon="mdi-alert" color="error" >{{ $t('review_potential_matches') }}</v-badge>
-        </v-btn>
         <v-btn color="secondary" @click="$router.go(-1)" v-if="canGoBack">{{  $t('back') }}</v-btn>
         <v-btn color="secondary" @click="close" v-else>{{  $t('close') }}</v-btn>
       </v-toolbar-items>
