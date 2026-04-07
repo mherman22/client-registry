@@ -31,7 +31,7 @@ describe('User Management - /ocrux/user/*', () => {
     // Server returns 200 with null token for unknown/invalid credentials
     expect([200, 400, 401, 403]).toContain(res.status);
     if (res.status === 200) {
-      expect(res.data.token).toBeFalsy();
+      expect(res.data.token).toBeNull();
     }
   });
 
