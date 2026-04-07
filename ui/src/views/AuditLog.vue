@@ -1,289 +1,203 @@
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="12">
-        <h2 class="text-h5 font-weight-medium mb-1">Audit Log</h2>
-        <p class="text--secondary mb-4">Full audit trail of patient record changes, configuration updates, and user actions (CRF-8)</p>
-      </v-col>
-    </v-row>
+  <div class="content-area">
+    <div class="page-header">
+      <h1>Audit Log</h1>
+      <p>Full audit trail of patient record changes and user actions</p>
+    </div>
 
-    <v-row class="mb-4">
-      <v-col cols="12" md="4">
-        <v-text-field
-          v-model="search"
-          label="Search audit events"
-          prepend-inner-icon="mdi-magnify"
-          outlined
-          dense
-          rounded
-          clearable
-          hide-details
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" md="3">
-        <v-select
-          v-model="filterType"
-          :items="eventTypes"
-          label="Event type"
-          outlined
-          dense
-          clearable
-          hide-details
-        ></v-select>
-      </v-col>
-      <v-col cols="12" md="3">
-        <v-menu
-          v-model="dateMenu"
-          :close-on-content-click="false"
-          transition="scale-transition"
-          offset-y
-          min-width="auto"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-text-field
-              v-model="dateRange"
-              label="Date range"
-              prepend-inner-icon="mdi-calendar"
-              outlined
-              dense
-              clearable
-              hide-details
-              readonly
-              v-bind="attrs"
-              v-on="on"
-            ></v-text-field>
-          </template>
-          <v-date-picker
-            v-model="dates"
-            range
-            no-title
-            @input="updateDateRange"
-          ></v-date-picker>
-        </v-menu>
-      </v-col>
-      <v-col cols="12" md="2">
-        <v-btn color="primary" depressed block @click="fetchAuditEvents">
-          <v-icon left>mdi-refresh</v-icon>
-          Refresh
-        </v-btn>
-      </v-col>
-    </v-row>
+    <div class="filter-row">
+      <input v-model="search" class="bx--text-input bx--search-input" placeholder="Search events..." />
+      <input v-model="dateFilter" type="date" class="bx--text-input date-input" />
+      <button class="bx--btn bx--btn--secondary bx--btn--sm" @click="fetchAuditEvents">Refresh</button>
+    </div>
 
-    <v-card rounded="lg" outlined>
-      <v-data-table
-        :headers="headers"
-        :items="filteredEvents"
-        :loading="loading"
-        :items-per-page="20"
-        :footer-props="{ 'items-per-page-options': [10, 20, 50, 100] }"
-        class="audit-table"
-      >
-        <template v-slot:item.recorded="{ item }">
-          <span class="text-caption">{{ item.recorded | moment("YYYY-MM-DD HH:mm:ss") }}</span>
-        </template>
+    <div v-if="loading" class="empty-state"><p>Loading audit events...</p></div>
 
-        <template v-slot:item.type="{ item }">
-          <v-chip
-            small
-            :color="getEventColor(item.type)"
-            dark
-          >
-            {{ item.type }}
-          </v-chip>
-        </template>
+    <div v-else-if="filteredEvents.length === 0" class="empty-state">
+      <h3>No audit events found</h3>
+    </div>
 
-        <template v-slot:item.action="{ item }">
-          <v-chip small outlined>{{ item.action }}</v-chip>
-        </template>
-
-        <template v-slot:item.outcome="{ item }">
-          <v-icon small :color="item.outcome === '0' ? 'success' : 'error'">
-            {{ item.outcome === '0' ? 'mdi-check-circle' : 'mdi-alert-circle' }}
-          </v-icon>
-          <span class="ml-1 text-caption">{{ item.outcome === '0' ? 'Success' : 'Failure' }}</span>
-        </template>
-
-        <template v-slot:item.agent="{ item }">
-          <span class="text-caption">{{ item.agent }}</span>
-        </template>
-
-        <template v-slot:item.entity="{ item }">
-          <a v-if="item.entityRef" @click="goToPatient(item.entityRef)" class="text-decoration-none">
-            {{ item.entity }}
-          </a>
-          <span v-else class="text-caption">{{ item.entity }}</span>
-        </template>
-
-        <template v-slot:no-data>
-          <div class="text-center py-8">
-            <v-icon size="48" color="grey lighten-1">mdi-clipboard-text-clock-outline</v-icon>
-            <p class="text--secondary mt-2">No audit events found</p>
-          </div>
-        </template>
-      </v-data-table>
-    </v-card>
-  </v-container>
+    <div v-else class="data-table-container">
+      <table class="bx--data-table bx--data-table-v2">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Type</th>
+            <th>Action</th>
+            <th>Outcome</th>
+            <th>Agent</th>
+            <th>Entity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(ev, idx) in filteredEvents" :key="idx">
+            <td>{{ dayjs(ev.recorded).format('YYYY-MM-DD HH:mm:ss') }}</td>
+            <td>
+              <span class="bx--tag" :class="typeTagClass(ev.type)">{{ ev.type }}</span>
+            </td>
+            <td>{{ ev.action }}</td>
+            <td>
+              <span :style="{ color: ev.outcome === '0' ? '#198038' : '#da1e28' }">
+                {{ ev.outcome === '0' ? 'Success' : 'Failure' }}
+              </span>
+            </td>
+            <td>{{ ev.agent }}</td>
+            <td>
+              <a v-if="ev.entityRef" class="bx--link" style="cursor:pointer" @click="goToPatient(ev.entityRef)">
+                {{ ev.entity }}
+              </a>
+              <span v-else>{{ ev.entity }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </template>
 
-<script>
-import axios from "axios";
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import dayjs from 'dayjs'
 
-export default {
-  name: "AuditLog",
-  data() {
-    return {
-      loading: false,
-      search: "",
-      filterType: null,
-      dateMenu: false,
-      dates: [],
-      dateRange: "",
-      events: [],
-      headers: [
-        { text: "Timestamp", value: "recorded", width: "180px" },
-        { text: "Type", value: "type", width: "140px" },
-        { text: "Action", value: "action", width: "120px" },
-        { text: "Outcome", value: "outcome", width: "120px" },
-        { text: "Agent", value: "agent" },
-        { text: "Entity", value: "entity" },
-      ],
-      eventTypes: [
-        "Patient Create",
-        "Patient Update",
-        "Patient Merge",
-        "Match Decision",
-        "Break Match",
-        "Configuration",
-        "Authentication",
-      ],
-    };
-  },
-  computed: {
-    filteredEvents() {
-      let result = this.events;
-      if (this.search) {
-        const s = this.search.toLowerCase();
-        result = result.filter(
-          (e) =>
-            (e.agent && e.agent.toLowerCase().includes(s)) ||
-            (e.entity && e.entity.toLowerCase().includes(s)) ||
-            (e.type && e.type.toLowerCase().includes(s))
-        );
-      }
-      if (this.filterType) {
-        result = result.filter((e) => e.type === this.filterType);
-      }
-      return result;
-    },
-  },
-  methods: {
-    async fetchAuditEvents() {
-      this.loading = true;
-      try {
-        let url = `/ocrux/fhir/AuditEvent?_count=200&_sort=-date`;
-        if (this.dates.length === 2) {
-          url += `&date=ge${this.dates[0]}&date=le${this.dates[1]}`;
-        }
-        const response = await axios.get(url);
-        const bundle = response.data;
-        this.events = [];
-        if (bundle && bundle.entry) {
-          for (const entry of bundle.entry) {
-            const ae = entry.resource;
-            if (!ae) continue;
-            const typeCoding = ae.type && ae.type.coding
-              ? ae.type.coding[0]
-              : ae.type;
-            const subtypeCoding = ae.subtype && ae.subtype[0];
-            const agentName =
-              ae.agent &&
-              ae.agent[0] &&
-              ae.agent[0].who &&
-              (ae.agent[0].who.display || ae.agent[0].who.reference);
-            const entityRef =
-              ae.entity &&
-              ae.entity[0] &&
-              ae.entity[0].what &&
-              ae.entity[0].what.reference;
-            const entityDisplay =
-              ae.entity &&
-              ae.entity[0] &&
-              ae.entity[0].what &&
-              (ae.entity[0].what.display || ae.entity[0].what.reference);
+const router = useRouter()
 
-            this.events.push({
-              recorded: ae.recorded || "",
-              type: this.mapEventType(typeCoding, subtypeCoding, ae.action),
-              action: ae.action || "",
-              outcome: ae.outcome || "",
-              agent: agentName || "System",
-              entity: entityDisplay || "",
-              entityRef: entityRef || null,
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch audit events:", error);
-      }
-      this.loading = false;
-    },
-    mapEventType(typeCoding, subtypeCoding, action) {
-      if (!typeCoding) return "Unknown";
-      const typeCode = typeCoding.code || "";
-      const subtypeCode = subtypeCoding && subtypeCoding.code || "";
+const events = ref([])
+const search = ref('')
+const dateFilter = ref('')
+const loading = ref(false)
 
-      // DICOM 110110 = Patient Record — use subtype/action to distinguish
-      if (typeCode === "110110") {
-        if (subtypeCode === "create" || action === "C") return "Patient Create";
-        if (subtypeCode === "update" || action === "U") return "Patient Update";
-        if (subtypeCode === "delete" || action === "D") return "Patient Delete";
-        if (subtypeCode === "read" || action === "R") return "Patient Read";
-        return "Patient Record";
-      }
-      if (typeCode === "110112") return "Query";
-      if (typeCode === "110100") return "Authentication";
-      if (typeCode === "110106") return "Export";
-      if (typeCode === "110107") return "Import";
+const filteredEvents = computed(() => {
+  let result = events.value
+  if (search.value) {
+    const s = search.value.toLowerCase()
+    result = result.filter(e =>
+      (e.agent && e.agent.toLowerCase().includes(s)) ||
+      (e.entity && e.entity.toLowerCase().includes(s)) ||
+      (e.type && e.type.toLowerCase().includes(s))
+    )
+  }
+  if (dateFilter.value) {
+    result = result.filter(e => e.recorded && e.recorded.startsWith(dateFilter.value))
+  }
+  return result
+})
 
-      return typeCoding.display || subtypeCode || typeCode || "Unknown";
-    },
-    getEventColor(type) {
-      const colors = {
-        "Patient Create": "success",
-        "Patient Update": "primary",
-        "Patient Delete": "error",
-        "Patient Read": "grey",
-        "Patient Record": "info",
-        "Query": "info",
-        "Authentication": "grey darken-1",
-        "Export": "accent",
-        "Import": "accent",
-      };
-      return colors[type] || "grey";
-    },
-    updateDateRange() {
-      if (this.dates.length === 2) {
-        this.dateRange = `${this.dates[0]} — ${this.dates[1]}`;
-        this.dateMenu = false;
+function mapEventType(typeCoding, subtypeCoding, action) {
+  if (!typeCoding) return 'Unknown'
+  const code = typeCoding.code || ''
+  const sub = (subtypeCoding && subtypeCoding.code) || ''
+  if (code === '110110') {
+    if (sub === 'create' || action === 'C') return 'Patient Create'
+    if (sub === 'update' || action === 'U') return 'Patient Update'
+    if (sub === 'delete' || action === 'D') return 'Patient Delete'
+    if (sub === 'read' || action === 'R') return 'Patient Read'
+    return 'Patient Record'
+  }
+  if (code === '110112') return 'Query'
+  if (code === '110100') return 'Authentication'
+  if (code === '110106') return 'Export'
+  if (code === '110107') return 'Import'
+  return typeCoding.display || sub || code || 'Unknown'
+}
+
+function typeTagClass(type) {
+  const map = {
+    'Patient Create': 'bx--tag--green',
+    'Patient Update': 'bx--tag--blue',
+    'Patient Delete': 'bx--tag--red',
+    'Authentication': 'bx--tag--gray',
+    'Query': 'bx--tag--teal'
+  }
+  return map[type] || 'bx--tag--warm-gray'
+}
+
+async function fetchAuditEvents() {
+  loading.value = true
+  try {
+    let url = '/ocrux/fhir/AuditEvent?_count=200&_sort=-date'
+    if (dateFilter.value) url += `&date=ge${dateFilter.value}`
+    const res = await axios.get(url)
+    const bundle = res.data
+    const parsed = []
+    if (bundle && bundle.entry) {
+      for (const entry of bundle.entry) {
+        const ae = entry.resource
+        if (!ae) continue
+        const typeCoding = ae.type && ae.type.coding ? ae.type.coding[0] : ae.type
+        const subtypeCoding = ae.subtype && ae.subtype[0]
+        const agentName = ae.agent && ae.agent[0] && ae.agent[0].who &&
+          (ae.agent[0].who.display || ae.agent[0].who.reference)
+        const entityRef = ae.entity && ae.entity[0] && ae.entity[0].what &&
+          ae.entity[0].what.reference
+        const entityDisplay = ae.entity && ae.entity[0] && ae.entity[0].what &&
+          (ae.entity[0].what.display || ae.entity[0].what.reference)
+
+        parsed.push({
+          recorded: ae.recorded || '',
+          type: mapEventType(typeCoding, subtypeCoding, ae.action),
+          action: ae.action || '',
+          outcome: ae.outcome || '',
+          agent: agentName || 'System',
+          entity: entityDisplay || '',
+          entityRef: entityRef || null
+        })
       }
-    },
-    goToPatient(ref) {
-      if (ref && ref.startsWith("Patient/")) {
-        const id = ref.replace("Patient/", "");
-        this.$router.push({ name: "client", params: { clientId: id } });
-      }
-    },
-  },
-  mounted() {
-    this.fetchAuditEvents();
-  },
-};
+    }
+    events.value = parsed
+  } catch (e) {
+    console.error('Failed to fetch audit events', e)
+  }
+  loading.value = false
+}
+
+function goToPatient(ref) {
+  if (ref && ref.startsWith('Patient/')) {
+    router.push({ name: 'client', params: { clientId: ref.replace('Patient/', '') } })
+  }
+}
+
+onMounted(fetchAuditEvents)
 </script>
 
 <style scoped>
-.audit-table th {
-  text-transform: uppercase !important;
-  font-size: 0.7rem !important;
+.filter-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-end;
+}
+.bx--search-input {
+  height: 40px;
+  flex: 1;
+  max-width: 300px;
+}
+.date-input {
+  height: 40px;
+  max-width: 180px;
+}
+.bx--data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.bx--data-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
   letter-spacing: 0.05em;
+  color: #525252;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f4f4f4;
+}
+.bx--data-table td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+.bx--data-table tbody tr:hover {
+  background: #e8e8e8;
 }
 </style>

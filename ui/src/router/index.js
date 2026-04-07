@@ -1,105 +1,26 @@
-import Vue from "vue";
-import VueRouter from "vue-router";
-import Home from "../views/Home.vue";
-import Client from "../views/Client.vue";
-import Review from "../views/Review.vue";
-import AutoMatches from "../views/AutoMatches.vue";
-import Resolve from "../views/Resolve.vue";
-import CSVReport from "../views/CSVReport.vue";
-import AuditLog from "../views/AuditLog.vue";
-import AddUser from "../views/AddUser.vue";
-import usersList from "../views/usersList.vue"
-import ChangePassword from "../views/ChangePassword.vue"
-import Login from '@/views/Login.vue'
-import Logout from '@/components/Logout.vue'
-import VueCookies from 'vue-cookies'
-import {
-  store
-} from '../store/store.js'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-Vue.use(VueRouter);
+const routes = [
+  { path: '/', name: 'home', component: () => import('@/views/Home.vue') },
+  { path: '/client/:clientId', name: 'client', component: () => import('@/views/Client.vue') },
+  { path: '/review', name: 'review', component: () => import('@/views/Review.vue') },
+  { path: '/automatch', name: 'automatch', component: () => import('@/views/AutoMatches.vue') },
+  { path: '/audit', name: 'audit', component: () => import('@/views/AuditLog.vue') },
+  { path: '/login', name: 'login', component: () => import('@/views/Login.vue') },
+  { path: '/users', name: 'users', component: () => import('@/views/Users.vue') },
+]
 
-const routes = [{
-    path: "/",
-    name: "home",
-    component: Home
-  },
-  {
-    path: "/client/:clientId",
-    name: "client",
-    component: Client
-  },
-  {
-    path: "/review",
-    name: "review",
-    component: Review
-  },
-  {
-    path: "/automatch",
-    name: "automatch",
-    component: AutoMatches
-  },
-  {
-    path: "/resolve/:clientId?",
-    name: "resolve",
-    component: Resolve
-  },
-  {
-    path: "/csvreport",
-    name: "csvreport",
-    component: CSVReport
-  },
-  {
-    path: "/audit",
-    name: "audit",
-    component: AuditLog
-  },
-  {
-    path: '/addUser',
-    name: 'AddUser',
-    component: AddUser
-  },
-  {
-    path: '/usersList',
-    name: 'usersList',
-    component: usersList
-  },
-  {
-    path: '/changePassword',
-    name: 'ChangePassword',
-    component: ChangePassword
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: Login
-  },
-  {
-    path: '/logout',
-    name: 'Logout',
-    component: Logout
-  }
-];
-
-const router = new VueRouter({
+const router = createRouter({
+  history: createWebHashHistory(),
   routes
-});
+})
 
-router.beforeEach((to, from, next) => {
-  if (!store.state.auth.token &&
-    (!VueCookies.get('token') || VueCookies.get('token') === 'null' || !VueCookies.get('userID') || VueCookies.get('userID') === 'null')
-  ) {
-    store.state.denyAccess = true
-    if (to.path !== '/Login') {
-      next({
-        path: '/Login'
-      })
-    } else {
-      return next()
-    }
-  } else {
-    next()
+router.beforeEach((to) => {
+  const auth = useAuthStore()
+  if (!auth.isAuthenticated && to.name !== 'login') {
+    return { name: 'login' }
   }
 })
 
-export default router;
+export default router

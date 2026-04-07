@@ -1,164 +1,126 @@
 <template>
-  <v-container fluid fill-height class="login-background">
-    <v-row align="center" justify="center">
-      <v-col cols="12" sm="8" md="5" lg="4">
-        <v-alert
-          type="error"
-          :value="authStatus"
-          class="mb-4"
-          outlined
-          dense
-        > {{ $t('auth_failed') }}
-        </v-alert>
-        <v-card class="login-card pa-6" elevation="2" rounded="lg">
-          <div class="text-center mb-6">
-            <v-icon size="56" color="primary" class="mb-3">mdi-shield-account</v-icon>
-            <div class="text-h5 font-weight-medium">Open Client Registry</div>
-            <div class="text-subtitle-2 grey--text text--darken-1 mt-1">Sign in to your account</div>
-          </div>
-          <v-form
-            ref="form"
-            class="px-2"
-          >
-            <v-text-field
-              v-model="username"
-              required
-              outlined
-              dense
-              color="primary"
-              :label="$t('labels_Username')"
-              prepend-inner-icon="mdi-account-outline"
-              @keyup.enter="authenticate()"
-              @blur="$v.username.$touch()"
-              @change="$v.username.$touch()"
-              :error-messages="usernameErrors"
-              class="mb-2"
-            />
-            <v-text-field
-              v-model="password"
-              required
-              outlined
-              dense
-              type="password"
-              color="primary"
-              :label="$t('labels_Password')"
-              prepend-inner-icon="mdi-lock-outline"
-              @keyup.enter="authenticate()"
-              @blur="$v.password.$touch()"
-              @change="$v.password.$touch()"
-              :error-messages="passwordErrors"
-              class="mb-2"
-            />
-          </v-form>
-          <div class="px-2 mt-2">
-            <v-btn
-              block
-              color="primary"
-              depressed
-              large
-              @click="authenticate()"
-              :disabled="$v.$invalid"
-              class="text-none font-weight-medium"
-            >
-              <v-icon left>mdi-login</v-icon>
-              {{ $t('login') }}
-            </v-btn>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-header">
+        <h1>Open Client Registry</h1>
+        <p>Sign in to manage patient identities</p>
+      </div>
+      <form @submit.prevent="login">
+        <div class="login-field">
+          <label class="bx--label">Username</label>
+          <input v-model="username" class="bx--text-input" placeholder="Enter your username" />
+          <div v-if="errors.username" class="bx--form-requirement">{{ errors.username }}</div>
+        </div>
+        <div class="login-field">
+          <label class="bx--label">Password</label>
+          <input v-model="password" type="password" class="bx--text-input" placeholder="Enter your password" />
+          <div v-if="errors.password" class="bx--form-requirement">{{ errors.password }}</div>
+        </div>
+        <div v-if="loginError" class="login-error">{{ loginError }}</div>
+        <button type="submit" class="bx--btn bx--btn--primary login-button" :disabled="loading">
+          {{ loading ? 'Signing in...' : 'Sign in' }}
+        </button>
+      </form>
+    </div>
+  </div>
 </template>
-<script>
-import { required } from "vuelidate/lib/validators";
-import axios from "axios";
-import VueCookies from "vue-cookies";
-import { generalMixin } from "@/mixins/generalMixin";
 
-export default {
-  mixins: [generalMixin],
-  validations: {
-    username: { required },
-    password: { required }
-  },
-  data() {
-    return {
-      username: "",
-      password: "",
-      authStatus: false
-    };
-  },
-  methods: {
-    authenticate() {
-      let formData = new FormData();
-      formData.append("username", this.username);
-      formData.append("password", this.password);
-      let params = { username: this.username, password: this.password };
-      axios({
-        method: "POST",
-        url: "/ocrux/user/authenticate",
-        params
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
+import { useAppStore } from '@/stores/app'
+
+const router = useRouter()
+const auth = useAuthStore()
+const app = useAppStore()
+
+const username = ref('')
+const password = ref('')
+const loading = ref(false)
+const loginError = ref('')
+const errors = ref({ username: '', password: '' })
+
+async function login() {
+  errors.value = { username: '', password: '' }
+  if (!username.value) { errors.value.username = 'Username is required'; return }
+  if (!password.value) { errors.value.password = 'Password is required'; return }
+
+  loading.value = true
+  loginError.value = ''
+
+  try {
+    const res = await axios.post('/ocrux/user/authenticate', null, {
+      params: { username: username.value, password: password.value }
+    })
+
+    if (res.data && res.data.token) {
+      auth.setAuth({
+        token: res.data.token,
+        username: res.data.username || username.value,
+        userID: res.data.userID || '',
+        role: res.data.role || ''
       })
-        .then(authResp => {
-          this.countMatchIssues();
-          this.countNewAutoMatches();
-          this.getClients();
-          this.$store.state.auth.token = authResp.data.token;
-          this.$store.state.auth.username = this.username;
-          this.$store.state.auth.userID = authResp.data.userID;
-          this.$store.state.auth.role = authResp.data.role;
-          VueCookies.config("30d");
-          VueCookies.set("token", this.$store.state.auth.token, "infinity");
-          VueCookies.set("userID", this.$store.state.auth.userID, "infinity");
-          VueCookies.set(
-            "username",
-            this.$store.state.auth.username,
-            "infinity"
-          );
-          this.$store.state.auth.role = authResp.data.role;
-          if (!authResp.data.token) {
-            this.authStatus = true;
-          } else {
-            this.$store.state.denyAccess = false;
-            this.$router.push({
-              name: "home"
-            });
-          }
-        })
-        .catch(err => {
-          this.$store.state.progress.enable = false;
-          this.$store.state.alert.show = true;
-          this.$store.state.alert.width = "500px";
-          this.$store.state.alert.msg = this.$t('login_failed');
-          this.$store.state.alert.type = "error";
-          if (err.hasOwnProperty("response")) {
-            throw err;
-          }
-        });
+
+      await Promise.all([
+        app.fetchClients(),
+        app.fetchSystemURI(),
+        app.fetchMatchCounts()
+      ])
+
+      router.push('/')
+    } else {
+      loginError.value = 'Invalid credentials'
     }
-  },
-  computed: {
-    usernameErrors() {
-      const errors = [];
-      if (!this.$v.username.$dirty) return errors;
-      !this.$v.username.required && errors.push(this.$t('username_required'));
-      return errors;
-    },
-    passwordErrors() {
-      const errors = [];
-      if (!this.$v.password.$dirty) return errors;
-      !this.$v.password.required && errors.push(this.$t('password_required'));
-      return errors;
-    }
+  } catch (e) {
+    loginError.value = e.response?.data?.message || 'Unable to connect to server'
   }
-};
+
+  loading.value = false
+}
 </script>
+
 <style scoped>
-.login-background {
-  background: linear-gradient(135deg, #E3F2FD 0%, #FAFBFC 50%, #E0F7FA 100%);
-  min-height: 100vh;
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 48px);
+  overflow: hidden;
+  background: #f4f4f4;
 }
 .login-card {
-  border-top: 3px solid #1976D2;
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 2.5rem;
+  border-left: 4px solid #0f62fe;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.login-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #161616;
+  margin: 0 0 0.5rem 0;
+}
+.login-header p {
+  font-size: 0.875rem;
+  color: #525252;
+  margin: 0 0 2rem 0;
+}
+.login-field {
+  margin-bottom: 1.5rem;
+}
+.login-error {
+  background: #fff1f1;
+  border-left: 3px solid #da1e28;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #da1e28;
+  margin-bottom: 1.5rem;
+}
+.login-button {
+  width: 100%;
 }
 </style>

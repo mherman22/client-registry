@@ -1,0 +1,158 @@
+body {
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  background-color: #f4f4f4;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #161616;
+    margin: 0 0 0.25rem 0;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: #525252;
+    margin: 0;
+  }
+}
+
+.content-area {
+  padding: 2rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.stat-card {
+  background: white;
+  border-left: 3px solid #0f62fe;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: #525252;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #161616;
+  }
+}
+
+.data-table-container {
+  background: white;
+  margin-top: 1rem;
+}
+
+.bx--tag {
+  font-size: 0.75rem;
+}
+
+.patient-card {
+  background: white;
+  padding: 1.5rem;
+  border-left: 3px solid #0f62fe;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .patient-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #161616;
+    margin-bottom: 0.5rem;
+  }
+
+  .patient-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+    color: #525252;
+  }
+
+  .patient-ids {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+.detail-section {
+  background: white;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+
+  h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #525252;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+
+  .detail-item {
+    .detail-label {
+      font-size: 0.75rem;
+      color: #525252;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: #161616;
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #525252;
+
+  svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 0.875rem;
+  }
+}
