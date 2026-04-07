@@ -12,13 +12,14 @@ services:
     volumes:
       - ../server:/src/server
       - ../resources:/src/resources
-      - ./config/config.json:/src/server/config/config_docker.json
-      - ./config/mediator.json:/src/server/config/mediator.json
-      - ./config/decisionRules.json:/src/server/config/decisionRules.json
-      - ./config/PatientRelationship.json:/src/resources/Relationships/PatientRelationship.json
+      - ./config:/example-config:ro
       - opencr-node-modules:/src/server/node_modules
     command: >
       sh -c "
+        cp /example-config/config.json /src/server/config/config_docker.json &&
+        cp /example-config/mediator.json /src/server/config/mediator.json &&
+        cp /example-config/decisionRules.json /src/server/config/decisionRules.json &&
+        cp /example-config/PatientRelationship.json /src/resources/Relationships/PatientRelationship.json &&
         npm install &&
         npx nodemon --watch lib --watch config --ext js,json lib/app.js
       "
