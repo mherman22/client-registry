@@ -60,7 +60,7 @@
     },
     "nationalid": {
       "uri": [
-        "http://clientregistry.org/nationalid"
+        "http://health.go.ug/cr/nationalid"
       ],
       "displayName": "National ID"
     },
