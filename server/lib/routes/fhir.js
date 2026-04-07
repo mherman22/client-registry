@@ -219,18 +219,14 @@ router.post('/', (req, res) => {
         entry: patients
       };
       let clientID;
-      if(req.connection && typeof req.connection.getPeerCertificate === "function") {
-        const cert = req.connection.getPeerCertificate();
-        clientID = cert.subject.CN;
-      } else if(req.headers['x-openhim-clientid']) {
+      if(req.headers['x-openhim-clientid']) {
         clientID = req.headers['x-openhim-clientid'];
+      } else if(req.connection && typeof req.connection.getPeerCertificate === "function") {
+        const cert = req.connection.getPeerCertificate();
+        if(cert && cert.subject) {
+          clientID = cert.subject.CN;
+        }
       }
-      // if (config.get('mediator:register')) {
-      //   clientID = req.headers['x-openhim-clientid'];
-      // } else {
-      //   const cert = req.connection.getPeerCertificate();
-      //   clientID = cert.subject.CN;
-      // }
       matchMixin.addPatient(clientID, patientsBundle, (err, responseBundle, responseHeaders, operationSummary) => {
         if (err) {
           return callback(null, {code: 500, err, responseBundle, responseHeaders, operationSummary});
@@ -347,11 +343,13 @@ function saveResource(req, res) {
     };
 
     let clientID;
-    if(req.connection && typeof req.connection.getPeerCertificate === "function") {
-      const cert = req.connection.getPeerCertificate();
-      clientID = cert.subject.CN;
-    } else if(req.headers['x-openhim-clientid']) {
+    if(req.headers['x-openhim-clientid']) {
       clientID = req.headers['x-openhim-clientid'];
+    } else if(req.connection && typeof req.connection.getPeerCertificate === "function") {
+      const cert = req.connection.getPeerCertificate();
+      if(cert && cert.subject) {
+        clientID = cert.subject.CN;
+      }
     }
 
     if(!clientID) {
@@ -367,12 +365,6 @@ function saveResource(req, res) {
         }
       });
     }
-    // if (config.get('mediator:register')) {
-    //   clientID = req.headers['x-openhim-clientid'];
-    // } else {
-    //   const cert = req.connection.getPeerCertificate();
-    //   clientID = cert.subject.CN;
-    // }
     matchMixin.addPatient(clientID, patientsBundle, (error, responseBundle, responseHeaders, operationSummary) => {
       const auditBundle = matchMixin.createAddPatientAudEvent(operationSummary, req);
       fhirWrapper.saveResource({
