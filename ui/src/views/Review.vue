@@ -1,44 +1,66 @@
 <template>
-  <div class="content-area">
-    <div class="page-header">
-      <h1>Action Required</h1>
-      <p>{{ filteredReviews.length }} flagged matches need review</p>
+  <div>
+    <!-- Page Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-1">
+        <h1 class="text-2xl font-semibold text-carbon-900">Action Required</h1>
+        <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">{{ filteredReviews.length }}</span>
+      </div>
+      <p class="text-sm text-carbon-500">Flagged matches that need manual review</p>
     </div>
 
-    <div class="search-bar">
+    <!-- Search -->
+    <div class="mb-6">
       <input
         v-model="search"
-        class="bx--text-input bx--search-input"
+        class="w-full max-w-md h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
         placeholder="Search by name, ID, or reason..."
       />
     </div>
 
-    <div v-if="loading" class="empty-state"><p>Loading flagged matches...</p></div>
-
-    <div v-else-if="filteredReviews.length === 0" class="empty-state">
-      <h3>No action items</h3>
-      <p>All patient matches are resolved</p>
+    <!-- Loading -->
+    <div v-if="loading" class="text-center py-16 text-carbon-400">
+      <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <p class="text-sm">Loading flagged matches...</p>
     </div>
 
+    <!-- Empty State -->
+    <div v-else-if="filteredReviews.length === 0" class="text-center py-16">
+      <div class="text-carbon-300 mb-3">
+        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-carbon-500">No action items</h3>
+      <p class="text-sm text-carbon-400">All patient matches are resolved</p>
+    </div>
+
+    <!-- Review List -->
     <div v-else>
       <div
         v-for="item in filteredReviews"
         :key="item.uid"
-        class="patient-card"
+        class="bg-white border border-carbon-100 p-4 mb-3 hover:shadow-sm transition cursor-pointer"
         @click="openReview(item)"
       >
-        <div class="patient-name">{{ item.given }} {{ item.family }}</div>
-        <div class="patient-meta">
+        <div class="flex items-start justify-between mb-1">
+          <div class="font-semibold text-carbon-900">{{ item.given }} {{ item.family }}</div>
+          <span
+            class="text-xs font-medium px-2 py-0.5 rounded-full"
+            :class="item.reason === 'conflict' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'"
+          >
+            {{ item.reason }}
+          </span>
+        </div>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-carbon-500">
           <span v-if="item.source">
-            <span class="bx--tag bx--tag--blue">{{ getSourceName(item.source) }}</span>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ getSourceName(item.source) }}</span>
           </span>
           <span v-if="item.source_id">ID: {{ item.source_id }}</span>
           <span v-if="item.date">Flagged: {{ dayjs(item.date).format('MMM D, YYYY HH:mm') }}</span>
-        </div>
-        <div class="patient-ids">
-          <span class="bx--tag" :class="item.reason === 'conflict' ? 'bx--tag--red' : 'bx--tag--warm-gray'">
-            {{ item.reason }}
-          </span>
         </div>
       </div>
     </div>
@@ -94,12 +116,4 @@ onMounted(fetchReviews)
 </script>
 
 <style scoped>
-.search-bar {
-  margin-bottom: 1.5rem;
-}
-.bx--search-input {
-  height: 40px;
-  width: 100%;
-  max-width: 400px;
-}
 </style>

@@ -1,76 +1,95 @@
 <template>
-  <div class="content-area">
-    <div class="page-header">
-      <h1>{{ $t('menu_home') }}</h1>
-      <p>Search and manage patient records across all facilities</p>
+  <div>
+    <!-- Page Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-carbon-900 mb-1">{{ $t('menu_home') }}</h1>
+      <p class="text-sm text-carbon-500">Search and manage patient records across all facilities</p>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Total Patients</div>
-        <div class="stat-value">{{ totalPatients }}</div>
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div class="bg-white border-l-4 border-blue-500 p-4">
+        <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Total Patients</div>
+        <div class="text-2xl font-semibold text-carbon-900">{{ totalPatients }}</div>
       </div>
-      <div class="stat-card" style="border-left-color: #da1e28">
-        <div class="stat-label">Action Required</div>
-        <div class="stat-value">{{ app.totalMatchIssues }}</div>
+      <div class="bg-white border-l-4 border-red-600 p-4">
+        <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Action Required</div>
+        <div class="text-2xl font-semibold text-carbon-900">{{ app.totalMatchIssues }}</div>
       </div>
-      <div class="stat-card" style="border-left-color: #0043ce">
-        <div class="stat-label">Auto-Matches</div>
-        <div class="stat-value">{{ app.totalAutoMatches }}</div>
+      <div class="bg-white border-l-4 border-blue-700 p-4">
+        <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Auto-Matches</div>
+        <div class="text-2xl font-semibold text-carbon-900">{{ app.totalAutoMatches }}</div>
       </div>
     </div>
 
     <!-- Search & Filter -->
-    <div class="search-bar">
-      <div class="search-input-wrapper">
+    <div class="flex flex-col sm:flex-row gap-3 mb-6">
+      <div class="flex-1">
         <input
           v-model="searchText"
-          class="bx--text-input bx--search-input"
+          class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
           placeholder="Search by name, identifier, or demographics..."
           @keyup.enter="searchPatients"
         />
       </div>
-      <select v-model="selectedPOS" class="bx--select-input" @change="searchPatients">
+      <select
+        v-model="selectedPOS"
+        class="h-10 px-3 text-sm border border-carbon-300 bg-white min-w-[180px] outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+        @change="searchPatients"
+      >
         <option value="">All Facilities</option>
         <option v-for="client in app.clients" :key="client.id" :value="client.id">
           {{ client.displayName }}
         </option>
       </select>
-      <button class="bx--btn bx--btn--primary" @click="searchPatients">Search</button>
+      <button
+        class="h-10 px-4 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+        @click="searchPatients"
+      >Search</button>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-16 text-carbon-400">
+      <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <p class="text-sm">Loading patients...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="patients.length === 0" class="text-center py-16">
+      <div class="text-carbon-300 mb-3">
+        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-carbon-500">No patients found</h3>
+      <p class="text-sm text-carbon-400">Try adjusting your search criteria or register a new patient</p>
     </div>
 
     <!-- Patient List -->
-    <div v-if="loading" class="empty-state">
-      <p>Loading patients...</p>
-    </div>
-
-    <div v-else-if="patients.length === 0" class="empty-state">
-      <h3>No patients found</h3>
-      <p>Try adjusting your search criteria or register a new patient</p>
-    </div>
-
     <div v-else>
       <div
         v-for="patient in patients"
         :key="patient.id"
-        class="patient-card"
+        class="bg-white border border-carbon-100 p-4 mb-3 hover:shadow-sm transition cursor-pointer"
         @click="openPatient(patient.id)"
       >
-        <div class="patient-name">{{ patient.name }}</div>
-        <div class="patient-meta">
+        <div class="font-semibold text-carbon-900 mb-1">{{ patient.name }}</div>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-carbon-500 mb-2">
           <span v-if="patient.gender">{{ patient.gender }}</span>
           <span v-if="patient.birthDate">DOB: {{ patient.birthDate }}</span>
           <span v-if="patient.phone">Phone: {{ patient.phone }}</span>
-          <span v-if="patient.source" class="patient-source">
-            <span class="bx--tag bx--tag--blue">{{ patient.source }}</span>
+          <span v-if="patient.source" class="ml-auto">
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ patient.source }}</span>
           </span>
         </div>
-        <div class="patient-ids">
+        <div class="flex flex-wrap gap-1.5">
           <span
             v-for="(id, idx) in patient.identifiers"
             :key="idx"
-            class="bx--tag bx--tag--gray"
+            class="text-xs font-medium px-2 py-0.5 rounded-full bg-carbon-100 text-carbon-600"
           >
             {{ id.label }}: {{ id.value }}
           </span>
@@ -78,15 +97,15 @@
       </div>
 
       <!-- Pagination -->
-      <div class="pagination">
+      <div class="flex items-center justify-center gap-4 py-6">
         <button
-          class="bx--btn bx--btn--ghost bx--btn--sm"
+          class="h-10 px-4 border border-carbon-300 text-carbon-700 text-sm hover:bg-carbon-50 disabled:opacity-40 disabled:cursor-not-allowed"
           :disabled="!prevPageUrl"
           @click="loadPage(prevPageUrl)"
         >Previous</button>
-        <span class="pagination-info">{{ patients.length }} patients shown</span>
+        <span class="text-sm text-carbon-500">{{ patients.length }} patients shown</span>
         <button
-          class="bx--btn bx--btn--ghost bx--btn--sm"
+          class="h-10 px-4 border border-carbon-300 text-carbon-700 text-sm hover:bg-carbon-50 disabled:opacity-40 disabled:cursor-not-allowed"
           :disabled="!nextPageUrl"
           @click="loadPage(nextPageUrl)"
         >Next</button>
@@ -212,51 +231,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.search-bar {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  align-items: flex-end;
-}
-
-.search-input-wrapper {
-  flex: 1;
-}
-
-.bx--search-input {
-  height: 40px;
-}
-
-.bx--select-input {
-  height: 40px;
-  min-width: 180px;
-  background: white;
-  border: 1px solid #8d8d8d;
-  padding: 0 2rem 0 1rem;
-  font-size: 0.875rem;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1.5rem 0;
-}
-
-.pagination-info {
-  font-size: 0.875rem;
-  color: #525252;
-}
-
-.patient-source {
-  margin-left: auto;
-}
 </style>

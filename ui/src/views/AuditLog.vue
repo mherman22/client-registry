@@ -1,52 +1,101 @@
 <template>
-  <div class="content-area">
-    <div class="page-header">
-      <h1>Audit Log</h1>
-      <p>Full audit trail of patient record changes and user actions</p>
+  <div>
+    <!-- Page Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-carbon-900 mb-1">Audit Log</h1>
+      <p class="text-sm text-carbon-500">Full audit trail of patient record changes and user actions</p>
     </div>
 
-    <div class="filter-row">
-      <input v-model="search" class="bx--text-input bx--search-input" placeholder="Search events..." />
-      <input v-model="dateFilter" type="date" class="bx--text-input date-input" />
-      <button class="bx--btn bx--btn--secondary bx--btn--sm" @click="fetchAuditEvents">Refresh</button>
+    <!-- Filters -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-6">
+      <input
+        v-model="search"
+        class="flex-1 max-w-xs h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
+        placeholder="Search events..."
+      />
+      <input
+        v-model="dateFilter"
+        type="date"
+        class="h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none max-w-[180px]"
+      />
+      <button
+        class="h-10 px-4 border border-carbon-300 text-carbon-700 text-sm hover:bg-carbon-50"
+        @click="fetchAuditEvents"
+      >Refresh</button>
     </div>
 
-    <div v-if="loading" class="empty-state"><p>Loading audit events...</p></div>
-
-    <div v-else-if="filteredEvents.length === 0" class="empty-state">
-      <h3>No audit events found</h3>
+    <!-- Loading -->
+    <div v-if="loading" class="text-center py-16 text-carbon-400">
+      <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <p class="text-sm">Loading audit events...</p>
     </div>
 
-    <div v-else class="data-table-container">
-      <table class="bx--data-table bx--data-table-v2">
-        <thead>
+    <!-- Table -->
+    <div v-else class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
           <tr>
-            <th>Timestamp</th>
-            <th>Type</th>
-            <th>Action</th>
-            <th>Outcome</th>
-            <th>Agent</th>
-            <th>Entity</th>
+            <th class="px-4 py-3 text-left">Timestamp</th>
+            <th class="px-4 py-3 text-left">Type</th>
+            <th class="px-4 py-3 text-left">Action</th>
+            <th class="px-4 py-3 text-left">Outcome</th>
+            <th class="px-4 py-3 text-left">Agent</th>
+            <th class="px-4 py-3 text-left">Entity</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(ev, idx) in filteredEvents" :key="idx">
-            <td>{{ dayjs(ev.recorded).format('YYYY-MM-DD HH:mm:ss') }}</td>
-            <td>
-              <span class="bx--tag" :class="typeTagClass(ev.type)">{{ ev.type }}</span>
+          <!-- Empty State -->
+          <tr v-if="filteredEvents.length === 0">
+            <td colspan="6" class="px-4 py-16 text-center">
+              <div class="text-carbon-300 mb-3">
+                <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-carbon-500">No audit events found</h3>
+              <p class="text-sm text-carbon-400">Try adjusting your search or date filter</p>
             </td>
-            <td>{{ ev.action }}</td>
-            <td>
-              <span :style="{ color: ev.outcome === '0' ? '#198038' : '#da1e28' }">
-                {{ ev.outcome === '0' ? 'Success' : 'Failure' }}
+          </tr>
+
+          <!-- Data Rows -->
+          <tr
+            v-for="(ev, idx) in filteredEvents"
+            :key="idx"
+            class="border-b border-carbon-100 hover:bg-carbon-50"
+            :class="idx % 2 === 1 ? 'bg-white' : 'bg-carbon-50/30'"
+          >
+            <td class="px-4 py-3 whitespace-nowrap text-carbon-600">{{ dayjs(ev.recorded).format('YYYY-MM-DD HH:mm:ss') }}</td>
+            <td class="px-4 py-3">
+              <span
+                class="text-xs font-medium px-2 py-0.5 rounded-full"
+                :class="typeTagClass(ev.type)"
+              >{{ ev.type }}</span>
+            </td>
+            <td class="px-4 py-3 text-carbon-700">{{ ev.action }}</td>
+            <td class="px-4 py-3">
+              <span class="flex items-center gap-1.5">
+                <svg v-if="ev.outcome === '0'" class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                <svg v-else class="h-4 w-4 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span :class="ev.outcome === '0' ? 'text-green-700' : 'text-red-700'">
+                  {{ ev.outcome === '0' ? 'Success' : 'Failure' }}
+                </span>
               </span>
             </td>
-            <td>{{ ev.agent }}</td>
-            <td>
-              <a v-if="ev.entityRef" class="bx--link" style="cursor:pointer" @click="goToPatient(ev.entityRef)">
-                {{ ev.entity }}
-              </a>
-              <span v-else>{{ ev.entity }}</span>
+            <td class="px-4 py-3 text-carbon-600">{{ ev.agent }}</td>
+            <td class="px-4 py-3">
+              <a
+                v-if="ev.entityRef"
+                class="text-blue-600 hover:underline cursor-pointer"
+                @click="goToPatient(ev.entityRef)"
+              >{{ ev.entity }}</a>
+              <span v-else class="text-carbon-600">{{ ev.entity }}</span>
             </td>
           </tr>
         </tbody>
@@ -104,13 +153,13 @@ function mapEventType(typeCoding, subtypeCoding, action) {
 
 function typeTagClass(type) {
   const map = {
-    'Patient Create': 'bx--tag--green',
-    'Patient Update': 'bx--tag--blue',
-    'Patient Delete': 'bx--tag--red',
-    'Authentication': 'bx--tag--gray',
-    'Query': 'bx--tag--teal'
+    'Patient Create': 'bg-green-100 text-green-700',
+    'Patient Update': 'bg-blue-100 text-blue-700',
+    'Patient Delete': 'bg-red-100 text-red-700',
+    'Authentication': 'bg-carbon-100 text-carbon-600',
+    'Query': 'bg-teal-100 text-teal-700'
   }
-  return map[type] || 'bx--tag--warm-gray'
+  return map[type] || 'bg-carbon-100 text-carbon-600'
 }
 
 async function fetchAuditEvents() {
@@ -162,42 +211,4 @@ onMounted(fetchAuditEvents)
 </script>
 
 <style scoped>
-.filter-row {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  align-items: flex-end;
-}
-.bx--search-input {
-  height: 40px;
-  flex: 1;
-  max-width: 300px;
-}
-.date-input {
-  height: 40px;
-  max-width: 180px;
-}
-.bx--data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.bx--data-table th {
-  text-align: left;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #525252;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e0e0e0;
-  background: #f4f4f4;
-}
-.bx--data-table td {
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-.bx--data-table tbody tr:hover {
-  background: #e8e8e8;
-}
 </style>
