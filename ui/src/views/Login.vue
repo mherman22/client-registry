@@ -86,14 +86,17 @@ async function login() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 48px);
-  background: linear-gradient(135deg, #161616 0%, #393939 100%);
+  height: calc(100vh - 48px);
+  overflow: hidden;
+  background: #f4f4f4;
 }
 .login-card {
   background: white;
   width: 100%;
   max-width: 400px;
   padding: 2.5rem;
+  border-left: 4px solid #0f62fe;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 .login-header h1 {
   font-size: 1.5rem;
