@@ -74,7 +74,8 @@ const navItems = computed(() => [
   { to: '/', label: 'Patients', exact: true },
   { to: '/review', label: 'Action Required', badge: app.totalMatchIssues },
   { to: '/automatch', label: 'Auto-Matches', badge: app.totalAutoMatches },
-  { to: '/audit', label: 'Audit Log' }
+  { to: '/audit', label: 'Audit Log' },
+  { to: '/csvreport', label: 'CSV Reports' }
 ])
 
 function toggleLocale() {

@@ -7,6 +7,7 @@ const routes = [
   { path: '/review', name: 'review', component: () => import('@/views/Review.vue') },
   { path: '/automatch', name: 'automatch', component: () => import('@/views/AutoMatches.vue') },
   { path: '/audit', name: 'audit', component: () => import('@/views/AuditLog.vue') },
+  { path: '/csvreport', name: 'csvreport', component: () => import('@/views/CSVReport.vue') },
   { path: '/login', name: 'login', component: () => import('@/views/Login.vue') },
   { path: '/users', name: 'users', component: () => import('@/views/Users.vue') },
 ]

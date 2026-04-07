@@ -1,93 +1,102 @@
 <template>
-    <v-card>
-    <v-card-title>
-      Action Required
-      <v-spacer />
-    </v-card-title>
-    <v-data-table
-      :headers="headers"
-      :items="csvReport"
-      :options.sync="options"
-      :footer-props="{ 
-      'items-per-page-options': [5,10,20,50] ,
-      'items-per-page-text':this.$t('row_per_page')}"
-      :no-data-text="$t('no_data')"
-      :loading="loading"
-      class="elevation-1"
-      >
-      <template v-slot:item.date="{ item }">
-        {{ item.date | moment("MMMM DD YYYY HH:mm:ssZ") }}
-      </template>
-      <template v-slot:item.reports="{ item }">
-        <v-card-title small>
-          <v-btn
-            dense
-            outlined
-            rounded
-            small
-            @click="downloadReport(item.reportId)"
+  <div>
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-carbon-900 mb-1">CSV Reports</h1>
+      <p class="text-sm text-carbon-500">View and download uploaded CSV patient data reports</p>
+    </div>
+
+    <div v-if="loading" class="text-center py-16 text-carbon-400">
+      <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <p class="text-sm">Loading reports...</p>
+    </div>
+
+    <div v-else-if="reports.length === 0" class="bg-white border border-carbon-100 text-center py-16">
+      <div class="text-carbon-300 mb-3">
+        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-carbon-500">No CSV reports available</h3>
+      <p class="text-sm text-carbon-400 mt-1">Upload a CSV file to see reports here</p>
+    </div>
+
+    <div v-else class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
+          <tr>
+            <th class="px-4 py-3 text-left">Report Name</th>
+            <th class="px-4 py-3 text-left">Date</th>
+            <th class="px-4 py-3 text-left">Records</th>
+            <th class="px-4 py-3 text-left">Status</th>
+            <th class="px-4 py-3 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(report, idx) in reports"
+            :key="report.id || idx"
+            class="border-b border-carbon-100 hover:bg-carbon-50"
           >
-            <v-progress-circular
-              indeterminate
-              color="amber"
-              v-if="downloading"
-            ></v-progress-circular>
-            <v-icon left v-else>mdi-microsoft-excel</v-icon>
-            Download
-          </v-btn>
-        </v-card-title>
-      </template>
-    </v-data-table>
-  </v-card>
+            <td class="px-4 py-3 font-medium text-carbon-900">{{ report.name || report.id }}</td>
+            <td class="px-4 py-3 text-carbon-600">{{ report.date || '--' }}</td>
+            <td class="px-4 py-3 text-carbon-600">{{ report.records || '--' }}</td>
+            <td class="px-4 py-3">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                {{ report.status || 'Complete' }}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <button class="text-blue-600 text-sm hover:underline" @click="viewReport(report.id)">View</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div v-if="selectedReport" class="mt-6 bg-white border border-carbon-100 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-carbon-900">Report Detail</h2>
+        <button class="text-sm text-carbon-500 hover:text-carbon-700" @click="selectedReport = null">Close</button>
+      </div>
+      <pre class="text-xs bg-carbon-50 p-4 overflow-x-auto border border-carbon-100 max-h-96">{{ JSON.stringify(selectedReport, null, 2) }}</pre>
+    </div>
+  </div>
 </template>
 
-<script>
-import axios from "axios";
-export default {
-  name: "CSVReport",
-  components: {
-  },
-  data() {
-    return {
-      report_idx: 1,
-      debug: "",
-      search: "",
-      loading: false,
-      prevPage: -1,
-      reports: {},
-      disabled: {},
-      options: { itemsPerPage: 10, sortBy: ["name"] },
-      rowsPerPageItems: [5, 10, 20, 50],
-      headers: [
-        { text: "CSV ID", value: "uuid" },
-        { text: this.$t('csv_name'), value: "name" },
-        { text: "Date", value: "date" },
-        { text: this.$t('reports'), value: "reports" }
-      ],
-      csvReport: [],
-      downloading: false
-    };
-  },
-  created: function() {
-    this.getCSVReport()
-  },
-  methods: {
-    getCSVReport() {
-      axios.get('/ocrux/csv/getCSVUpload').then((resp) => {
-        this.csvReport = resp.data
-        for( let item of this.csvReport ) {
-          this.reports[ item.uuid ] = []
-          this.disabled[ item.uuid ] = false
-        }
-      })
-    },
-    downloadReport(id) {
-      this.downloading = true
-      axios.get(`/ocrux/csv/getCSVReport/${id}`).then((resp) => {
-        this.downloading = false
-        window.open(resp.data, "_self");
-      })
-    }
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+const reports = ref([])
+const loading = ref(false)
+const selectedReport = ref(null)
+
+async function fetchReports() {
+  loading.value = true
+  try {
+    const res = await axios.get('/ocrux/csv/getCSVUpload')
+    reports.value = Array.isArray(res.data) ? res.data : []
+  } catch (e) {
+    console.warn('Failed to fetch CSV reports:', e.message)
+    reports.value = []
   }
-};
+  loading.value = false
+}
+
+async function viewReport(id) {
+  try {
+    const res = await axios.get(`/ocrux/csv/getCSVReport/${id}`)
+    selectedReport.value = res.data
+  } catch (e) {
+    console.warn('Failed to fetch report:', e.message)
+  }
+}
+
+onMounted(fetchReports)
 </script>
+
+<style scoped>
+</style>
