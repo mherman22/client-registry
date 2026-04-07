@@ -328,5 +328,3 @@ cd server && npm test
 ## Acknowledgments
 
 OpenCR was originally developed by [IntraHealth International](https://www.intrahealth.org/) with support from PEPFAR through the USAID MEASURE Evaluation Project. Technical direction was provided by CDC.
-
-This fork is maintained by the [SEDISH Haiti HIE](https://github.com/charess-org/sedish) team.
