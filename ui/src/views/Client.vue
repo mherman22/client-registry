@@ -49,6 +49,14 @@
             <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Phone</div>
             <div class="text-sm font-medium text-carbon-900">{{ phone }}</div>
           </div>
+          <div v-if="patient.multipleBirthBoolean || patient.multipleBirthInteger">
+            <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Multiple Birth</div>
+            <div class="text-sm font-medium text-carbon-900">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                {{ patient.multipleBirthInteger ? 'Birth order: ' + patient.multipleBirthInteger : 'Yes' }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 

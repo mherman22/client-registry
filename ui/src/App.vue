@@ -67,16 +67,16 @@ import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 
 const router = useRouter()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const auth = useAuthStore()
 const app = useAppStore()
 
 const navItems = computed(() => [
-  { to: '/', label: 'Home', exact: true },
-  { to: '/review', label: 'Action Required', badge: app.totalMatchIssues },
-  { to: '/automatch', label: 'Auto-Matches', badge: app.totalAutoMatches },
-  { to: '/audit', label: 'Audit Log' },
-  { to: '/csvreport', label: 'CSV Reports' }
+  { to: '/', label: t('menu_home'), exact: true },
+  { to: '/review', label: t('menu_action_required'), badge: app.totalMatchIssues },
+  { to: '/automatch', label: t('menu_auto_matches'), badge: app.totalAutoMatches },
+  { to: '/audit', label: t('menu_audit') },
+  { to: '/csvreport', label: t('menu_csv') }
 ])
 
 function toggleLocale() {

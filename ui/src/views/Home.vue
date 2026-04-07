@@ -27,7 +27,7 @@
       <h2 class="text-sm font-semibold text-carbon-700 uppercase tracking-wide mb-4">Search Patients</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <div>
-          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Given Name</label>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">{{ $t('given_names') }}</label>
           <input
             v-model="givenName"
             class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
@@ -36,7 +36,7 @@
           />
         </div>
         <div>
-          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Surname</label>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">{{ $t('surname') }}</label>
           <input
             v-model="familyName"
             class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
@@ -45,7 +45,7 @@
           />
         </div>
         <div>
-          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Gender</label>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">{{ $t('gender') }}</label>
           <select
             v-model="gender"
             class="w-full h-10 px-3 text-sm border border-carbon-300 bg-white outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
@@ -78,7 +78,7 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Date of Birth</label>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">{{ $t('birth_date') }}</label>
           <input
             v-model="birthDate"
             type="date"
