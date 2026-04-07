@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/ocrux': {
-        target: 'https://localhost:3000',
+        target: process.env.OPENCR_BACKEND || 'https://localhost:3000',
         changeOrigin: true,
         secure: false
       }
