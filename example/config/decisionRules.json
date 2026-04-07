@@ -1,0 +1,65 @@
+{
+  "__comments": {
+    "threshold": {
+      "jaro-winkler": "0 = no match, 1 = exact match",
+      "exact": "binary match"
+    }
+  },
+  "rules": [
+    {
+      "__description": "Rule 1: National ID exact match",
+      "matchingType": "deterministic",
+      "rule": "1",
+      "fields": {
+        "nationalId": {
+          "algorithm": "exact",
+          "fhirpath": "identifier.where(system='http://clientregistry.org/nationalid').value",
+          "espath": "nationalId",
+          "null_handling": "conservative",
+          "null_handling_both": "conservative"
+        }
+      },
+      "potentialMatchThreshold": 2,
+      "autoMatchThreshold": 2
+    },
+    {
+      "__description": "Rule 2: Name + gender + DOB fuzzy match",
+      "matchingType": "probabilistic",
+      "rule": "2",
+      "fields": {
+        "given": {
+          "algorithm": "jaro-winkler",
+          "threshold": 0.8,
+          "fhirpath": "name.first().given",
+          "espath": "given",
+          "null_handling": "conservative",
+          "null_handling_both": "conservative"
+        },
+        "family": {
+          "algorithm": "jaro-winkler",
+          "threshold": 0.8,
+          "fhirpath": "name.first().family",
+          "espath": "family",
+          "null_handling": "conservative",
+          "null_handling_both": "conservative"
+        },
+        "gender": {
+          "algorithm": "exact",
+          "fhirpath": "gender",
+          "espath": "gender",
+          "null_handling": "conservative",
+          "null_handling_both": "conservative"
+        },
+        "birthDate": {
+          "algorithm": "exact",
+          "fhirpath": "birthDate",
+          "espath": "birthDate",
+          "null_handling": "conservative",
+          "null_handling_both": "conservative"
+        }
+      },
+      "potentialMatchThreshold": 3,
+      "autoMatchThreshold": 4
+    }
+  ]
+}

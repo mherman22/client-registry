@@ -1,0 +1,35 @@
+{
+  "urn": "urn:mediator:opencr",
+  "version": "1.0.0",
+  "name": "Client Registry",
+  "description": "Open Client Registry",
+  "defaultChannelConfig": [
+    {
+      "name": "Client Registry",
+      "urlPattern": "^/CR/fhir.*$",
+      "routes": [
+        {
+          "name": "Client Registry",
+          "host": "opencr",
+          "pathTransform": "s/CR\\/fhir/fhir/g",
+          "port": 3000,
+          "primary": true,
+          "type": "http"
+        }
+      ],
+      "allow": ["openmrs", "openelis", "test"],
+      "methods": ["GET", "POST", "PUT", "DELETE"],
+      "type": "http"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "Client Registry",
+      "host": "opencr",
+      "path": "/fhir",
+      "port": 3000,
+      "primary": true,
+      "type": "http"
+    }
+  ]
+}

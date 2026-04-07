@@ -1,0 +1,73 @@
+services:
+
+  # OpenCR Server — Client Registry API + CRUX UI
+  opencr:
+    container_name: opencr
+    image: ghcr.io/mherman22/client-registry:improved-opencr-fork
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=docker
+      - HAPI_FHIR_URL=http://opencr-fhir:8080/fhir/metadata
+    volumes:
+      - ./config/config.json:/src/server/config/config_docker.json
+      - ./config/mediator.json:/src/server/config/mediator.json
+      - ./config/decisionRules.json:/src/server/config/decisionRules.json
+      - ./config/PatientRelationship.json:/src/resources/Relationships/PatientRelationship.json
+    depends_on:
+      opencr-fhir:
+        condition: service_healthy
+      es:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    networks:
+      - opencr
+
+  # HAPI FHIR — Patient resource storage
+  opencr-fhir:
+    container_name: opencr-fhir
+    image: hapiproject/hapi:v5.5.1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/fhir/metadata"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "8080:8080"
+    networks:
+      - opencr
+
+  # Elasticsearch — Patient matching index
+  es:
+    container_name: opencr-es
+    image: intrahealth/elasticsearch:latest
+    restart: unless-stopped
+    environment:
+      - node.name=es01
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - opencr
+
+volumes:
+  es-data:
+
+networks:
+  opencr:
+    driver: bridge
