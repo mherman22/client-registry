@@ -295,20 +295,51 @@ curl -k -X POST https://localhost:3000/fhir/Patient \
 - Node.js 16+ (server) / 18+ (UI build)
 - Docker & Docker Compose
 
-### Local Development
+### Quick Start (one command)
 
 ```bash
-# Install server dependencies
-cd server && npm install
+cd ui
+npm install
 
+# Start backend + frontend
+npm run dev:full
+
+# Start backend + frontend + load demo data (10 patients)
+DEMO=true npm run dev:full
+
+# Stop everything
+npm run dev:stop
+```
+
+Open `http://localhost:5173/crux/#/login` — credentials: `root@intrahealth.org` / `intrahealth`
+
+The `dev:full` command:
+1. Starts HAPI FHIR, Elasticsearch, and OpenCR via Docker Compose
+2. Waits for the backend to be healthy
+3. Loads demo data if `DEMO=true` (10 Haitian patients with matching pairs, multi-birth, multiple sources)
+4. Starts the Vite dev server with hot reload
+
+### Demo Data
+
+When using `DEMO=true`, the seed script loads:
+- **10 patients** with Haiti demographics (various cities and departments)
+- **2 matching pairs** — Jean Baptiste and Marie Dupont appear from both OpenMRS and OpenELIS with the same National ID, triggering golden record auto-matching
+- **2 multi-birth patients** — Emmanuel Joseph (birth order 2) and Sophia Aristide
+- **Multiple identifier types** — Internal ID, National ID, Lab ID
+
+To reseed after reset: `npm run dev:seed` (requires backend running)
+
+### Manual Setup
+
+```bash
 # Install UI dependencies
-cd ../ui && npm install
+cd ui && npm install
 
-# Run UI dev server (with hot reload)
-npm run dev
+# Start backend only
+cd ../example && OPENCR_PORT=3002 docker compose up -d
 
-# Run server
-cd ../server && NODE_ENV=docker node lib/app.js
+# Start frontend only (another terminal)
+cd ui && OPENCR_BACKEND=https://localhost:3002 npm run dev
 ```
 
 ### Building the Docker Image
