@@ -1387,6 +1387,9 @@ router.get('/potential-matches/:id', (req, res) => {
     /**
      * childMatches are the matches of the submitted patient while grandChildMatches are the matches of the childMatches
      */
+    if (!patient || patient.resourceType !== 'Patient') {
+      return res.status(404).send(matchResults);
+    }
     generateScoreMatrix({patient, level: 'childMatches'}, () => {
       return res.status(200).send(matchResults);
     });
@@ -1423,6 +1426,9 @@ router.get('/potential-matches/:id', (req, res) => {
       FHIRConflictsMatches,
       ESMatches
     }) => {
+      if (!patient.link || patient.link.length === 0) {
+        return callback();
+      }
       let link = patient.link[0].other.reference;
       let goldenLink = link.split('/')[1];
       const validSystem = generalMixin.getClientIdentifier(patient);

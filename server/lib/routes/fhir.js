@@ -279,8 +279,8 @@ router.post('/', (req, res) => {
         }
       }
     }
-    res.setHeader('Location', JSON.stringify(results.patients.responseHeaders.patientID));
-    res.setHeader('LocationCRUID', JSON.stringify(results.patients.responseHeaders.CRUID));
+    res.setHeader('Location', results.patients.responseHeaders.patientID[0]);
+    res.setHeader('LocationCRUID', results.patients.responseHeaders.CRUID[0]);
     let type = resource.type + "-response"
     if(!resource.type) {
       type = "batch-response"
