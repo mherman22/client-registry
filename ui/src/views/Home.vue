@@ -271,7 +271,7 @@ export default {
               }
               let name =
                 entry.resource.name &&
-                entry.resource.name.find(name => name.use === "official");
+                (entry.resource.name.find(name => name.use === "official") || entry.resource.name[0]);
               if (!name) {
                 name = {};
               }
