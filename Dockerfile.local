@@ -1,16 +1,23 @@
+FROM node:18-bullseye-slim AS ui-builder
+
+WORKDIR /build/ui
+COPY ui/package.json ui/vite.config.js ui/index.html ./
+COPY ui/src ./src
+RUN npm install && npm run build
+
 FROM node:16-bullseye-slim
 
 RUN mkdir -p /var/log
-RUN apt-get -qq update && apt-get install -y -qq git curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN apt-get -qq update && apt-get install -y -qq curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-COPY . /src/
-
-WORKDIR /src/ui
-RUN sed -i 's/export NODE_OPTIONS=--openssl-legacy-provider && //g' package.json
-RUN npm install --legacy-peer-deps && npm run build
+COPY server /src/server
+COPY resources /src/resources
 
 WORKDIR /src/server
 RUN npm install
+
+# Copy built UI from builder stage (vite outputs to ../server/gui)
+COPY --from=ui-builder /build/server/gui /src/server/gui
 
 RUN cp /src/server/config/config_docker_template.json /src/server/config/config_docker.json
 RUN cp /src/server/config/config_cicd_template.json /src/server/config/config_cicd.json
