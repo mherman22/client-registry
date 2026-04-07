@@ -88,6 +88,14 @@
                           {{ patient.birthdate }}
                         </v-list-item-content>
                       </v-list-item>
+                      <v-list-item v-if="patient.multipleBirth">
+                        <v-list-item-content class="text-caption grey--text">Multiple Birth</v-list-item-content>
+                        <v-list-item-content class="align-end font-weight-medium">
+                          <v-chip x-small color="info" dark>
+                            {{ patient.birthOrder ? 'Birth order: ' + patient.birthOrder : 'Yes' }}
+                          </v-chip>
+                        </v-list-item-content>
+                      </v-list-item>
                       <v-list-item
                         v-for="(telecom, k) in patient.telecom"
                         :key="`${k}-${telecom.system}`"
@@ -561,7 +569,9 @@ export default {
                       identifier: identifiers,
                       family: name.family,
                       given: name.given.join(" "),
-                      phone: phone
+                      phone: phone,
+                      multipleBirth: patient.multipleBirthBoolean || (patient.multipleBirthInteger > 0),
+                      birthOrder: patient.multipleBirthInteger || null
                     });
                   } else {
                     this.break_items.push({
@@ -575,7 +585,9 @@ export default {
                       identifier: identifiers,
                       family: name.family,
                       given: name.given.join(" "),
-                      phone: phone
+                      phone: phone,
+                      multipleBirth: patient.multipleBirthBoolean || (patient.multipleBirthInteger > 0),
+                      birthOrder: patient.multipleBirthInteger || null
                     });
                   }
                 }
@@ -669,7 +681,9 @@ export default {
                       extension: extensions,
                       family: name.family,
                       given: name.given.join(" "),
-                      phone: phone
+                      phone: phone,
+                      multipleBirth: patient.multipleBirthBoolean || (patient.multipleBirthInteger > 0),
+                      birthOrder: patient.multipleBirthInteger || null
                     });
                   } else {
                     this.match_items.push({
@@ -685,7 +699,9 @@ export default {
                       extension: extensions,
                       family: name.family,
                       given: name.given.join(" "),
-                      phone: phone
+                      phone: phone,
+                      multipleBirth: patient.multipleBirthBoolean || (patient.multipleBirthInteger > 0),
+                      birthOrder: patient.multipleBirthInteger || null
                     });
                   }
                   this.match_count++;
