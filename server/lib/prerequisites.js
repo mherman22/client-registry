@@ -89,8 +89,7 @@ const modifyRelationship = () => {
             }
             fs.writeFile(`${__dirname}/../../resources/Relationships/${file}`, relationship, (err) => {
               if(err) {
-                logger.error(err);
-                return reject();
+                logger.warn('Could not write relationship file (read-only filesystem?): ' + err.message);
               }
               if(errorOccured) {
                 return reject();
