@@ -22,30 +22,80 @@
       </div>
     </div>
 
-    <!-- Search & Filter -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-6">
-      <div class="flex-1">
-        <input
-          v-model="searchText"
-          class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
-          placeholder="Search by name, identifier, or demographics..."
-          @keyup.enter="searchPatients"
-        />
+    <!-- Search Filters -->
+    <div class="bg-white border border-carbon-100 p-5 mb-6">
+      <h2 class="text-sm font-semibold text-carbon-700 uppercase tracking-wide mb-4">Search Patients</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Given Name</label>
+          <input
+            v-model="givenName"
+            class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
+            placeholder="e.g. Jean"
+            @keyup.enter="searchPatients"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Surname</label>
+          <input
+            v-model="familyName"
+            class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
+            placeholder="e.g. Baptiste"
+            @keyup.enter="searchPatients"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Gender</label>
+          <select
+            v-model="gender"
+            class="w-full h-10 px-3 text-sm border border-carbon-300 bg-white outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+          >
+            <option value="">Any</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Identifier / CRUID</label>
+          <input
+            v-model="identifier"
+            class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
+            placeholder="e.g. 07D6MD or golden record ID"
+            @keyup.enter="searchPatients"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Point of Service</label>
+          <select
+            v-model="selectedPOS"
+            class="w-full h-10 px-3 text-sm border border-carbon-300 bg-white outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+          >
+            <option value="">All Facilities</option>
+            <option v-for="client in app.clients" :key="client.id" :value="client.id">
+              {{ client.displayName }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Date of Birth</label>
+          <input
+            v-model="birthDate"
+            type="date"
+            class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
+          />
+        </div>
       </div>
-      <select
-        v-model="selectedPOS"
-        class="h-10 px-3 text-sm border border-carbon-300 bg-white min-w-[180px] outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-        @change="searchPatients"
-      >
-        <option value="">All Facilities</option>
-        <option v-for="client in app.clients" :key="client.id" :value="client.id">
-          {{ client.displayName }}
-        </option>
-      </select>
-      <button
-        class="h-10 px-4 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
-        @click="searchPatients"
-      >Search</button>
+      <div class="flex gap-3">
+        <button
+          class="h-10 px-6 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+          @click="searchPatients"
+        >Search</button>
+        <button
+          class="h-10 px-4 border border-carbon-300 text-carbon-700 text-sm hover:bg-carbon-50"
+          @click="clearSearch"
+        >Clear</button>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -58,14 +108,14 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="patients.length === 0" class="text-center py-16">
+    <div v-else-if="patients.length === 0" class="bg-white border border-carbon-100 text-center py-16">
       <div class="text-carbon-300 mb-3">
         <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
         </svg>
       </div>
       <h3 class="text-lg font-medium text-carbon-500">No patients found</h3>
-      <p class="text-sm text-carbon-400">Try adjusting your search criteria or register a new patient</p>
+      <p class="text-sm text-carbon-400 mt-1">Try adjusting your search criteria or register a new patient</p>
     </div>
 
     <!-- Patient List -->
@@ -123,8 +173,12 @@ import { useAppStore } from '@/stores/app'
 const router = useRouter()
 const app = useAppStore()
 
-const searchText = ref('')
+const givenName = ref('')
+const familyName = ref('')
+const gender = ref('')
+const identifier = ref('')
 const selectedPOS = ref('')
+const birthDate = ref('')
 const patients = ref([])
 const totalPatients = ref(0)
 const loading = ref(false)
@@ -166,9 +220,11 @@ async function searchPatients() {
   loading.value = true
   try {
     let url = `/ocrux/fhir/Patient?_count=20`
-    if (searchText.value) {
-      url += `&name=${encodeURIComponent(searchText.value)}`
-    }
+    if (givenName.value) url += `&given=${encodeURIComponent(givenName.value)}`
+    if (familyName.value) url += `&family=${encodeURIComponent(familyName.value)}`
+    if (gender.value) url += `&gender=${gender.value}`
+    if (identifier.value) url += `&identifier=${encodeURIComponent(identifier.value)}`
+    if (birthDate.value) url += `&birthdate=${birthDate.value}`
     if (selectedPOS.value) {
       url += `&_tag=http://openclientregistry.org/fhir/clientid|${selectedPOS.value}`
     }
@@ -177,6 +233,16 @@ async function searchPatients() {
     console.error('Search failed', e)
   }
   loading.value = false
+}
+
+function clearSearch() {
+  givenName.value = ''
+  familyName.value = ''
+  gender.value = ''
+  identifier.value = ''
+  selectedPOS.value = ''
+  birthDate.value = ''
+  searchPatients()
 }
 
 async function loadPage(url) {
@@ -212,7 +278,6 @@ async function loadUrl(url) {
       const resource = entry.resource
       if (!resource || resource.resourceType !== 'Patient') continue
 
-      // Skip golden records
       const isGolden = resource.meta && resource.meta.tag &&
         resource.meta.tag.find(t => t.code === goldenCode)
       if (isGolden) continue
