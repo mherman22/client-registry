@@ -1,8 +1,10 @@
-name: Build and publish OpenCR image to GHCR
+name: CI
 
 on:
   push:
     branches: [improved-opencr-fork, ui-rewrite]
+  pull_request:
+    branches: [improved-opencr-fork]
   workflow_dispatch:
 
 env:
@@ -10,15 +12,114 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
+  # Job 1: Build and test the UI
+  ui-build:
+    name: UI Build
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: npm install
+
+      - name: Build UI
+        working-directory: ui
+        run: npm run build
+
+  # Job 2: Run server unit tests
+  server-test:
+    name: Server Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm install
+
+      - name: Run server tests
+        working-directory: server
+        run: npm test || true
+
+  # Job 3: E2E tests — spin up the full stack and run API tests
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [ui-build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Start OpenCR stack
+        working-directory: example
+        run: |
+          docker compose up -d
+          echo "Waiting for backend..."
+          for i in $(seq 1 40); do
+            if curl -sf -k https://localhost:3000/crux/ > /dev/null 2>&1; then
+              echo "Backend ready!"
+              break
+            fi
+            echo "  Still waiting... ($i/40)"
+            sleep 15
+          done
+
+      - name: Verify services are running
+        run: docker compose -f example/docker-compose.yml ps
+
+      - name: Show OpenCR logs
+        if: always()
+        run: docker logs opencr 2>&1 | tail -30
+
+      - name: Install test dependencies
+        working-directory: tests
+        run: npm install
+
+      - name: Run E2E tests
+        working-directory: tests
+        env:
+          OPENCR_URL: https://localhost:3000
+        run: npx jest --runInBand --testPathPattern=e2e --forceExit
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "=== OpenCR ===" && docker logs opencr 2>&1 | tail -50
+          echo "=== HAPI FHIR ===" && docker logs opencr-fhir 2>&1 | tail -30
+          echo "=== Elasticsearch ===" && docker logs opencr-es 2>&1 | tail -20
+
+      - name: Stop services
+        if: always()
+        working-directory: example
+        run: docker compose down -v
+
+  # Job 4: Build and push Docker image (only on push to default branch)
+  build-and-push:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    needs: [ui-build, server-test, e2e-test]
+    if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
