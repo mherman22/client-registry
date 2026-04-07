@@ -236,8 +236,7 @@ router.post('/', (req, res) => {
               severity: "error",
               code: "required",
               diagnostics: "Client ID is required"
-            }],
-            entry: []
+            }]
           },
           responseHeaders: { patientID: [], CRUID: [] },
           operationSummary: []
