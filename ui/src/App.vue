@@ -53,6 +53,13 @@
         >
           <v-icon left small>mdi-file-chart-outline</v-icon>{{ $t('menu_csv') }}
         </v-btn>
+        <v-btn
+          text
+          to="/audit"
+          class="text-none"
+        >
+          <v-icon left small>mdi-clipboard-text-clock-outline</v-icon>Audit Log
+        </v-btn>
         <v-menu
           bottom
           offset-y

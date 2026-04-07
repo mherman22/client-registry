@@ -6,6 +6,7 @@ import Review from "../views/Review.vue";
 import AutoMatches from "../views/AutoMatches.vue";
 import Resolve from "../views/Resolve.vue";
 import CSVReport from "../views/CSVReport.vue";
+import AuditLog from "../views/AuditLog.vue";
 import AddUser from "../views/AddUser.vue";
 import usersList from "../views/usersList.vue"
 import ChangePassword from "../views/ChangePassword.vue"
@@ -47,6 +48,11 @@ const routes = [{
     path: "/csvreport",
     name: "csvreport",
     component: CSVReport
+  },
+  {
+    path: "/audit",
+    name: "audit",
+    component: AuditLog
   },
   {
     path: '/addUser',
