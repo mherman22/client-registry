@@ -2,8 +2,9 @@
   <div id="app" class="min-h-screen bg-carbon-50 font-sans">
     <!-- Header -->
     <header v-if="auth.isAuthenticated" class="fixed top-0 left-0 right-0 h-12 bg-carbon-900 flex items-center z-50 border-b border-carbon-700">
-      <router-link to="/" class="text-white text-sm font-semibold px-4 h-full flex items-center hover:bg-carbon-800 no-underline">
-        <span class="font-light mr-1">Open</span>Client Registry
+      <router-link to="/" class="text-white text-sm font-semibold px-4 h-full flex items-center hover:bg-carbon-800 no-underline gap-2">
+        <img src="/favicon.ico" alt="crux" class="h-5 w-5" />
+        <span><span class="font-light">Open</span> Client Registry</span>
       </router-link>
 
       <nav class="flex h-full flex-1">

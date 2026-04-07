@@ -1,7 +1,10 @@
 <template>
   <div class="min-h-screen bg-carbon-50 flex items-center justify-center">
     <div class="bg-white w-full max-w-md p-8 border-l-4 border-blue-600 shadow-md">
-      <h1 class="text-2xl font-semibold text-carbon-900 mb-1">Open Client Registry</h1>
+      <div class="flex items-center gap-3 mb-1">
+        <img src="/favicon.ico" alt="crux" class="h-8 w-8" />
+        <h1 class="text-2xl font-semibold text-carbon-900">Open Client Registry</h1>
+      </div>
       <p class="text-sm text-carbon-500 mb-8">Sign in to manage patient identities</p>
 
       <form @submit.prevent="login" class="space-y-5">
