@@ -176,13 +176,14 @@ const loadResources = async (callback) => {
             if (err) {
               logger.error(err);
               processingError = true;
+              return nxtFile();
             }
-            if (res.statusCode && (res.statusCode < 200 || res.statusCode > 399)) {
+            if (res && res.statusCode && (res.statusCode < 200 || res.statusCode > 399)) {
               logger.error(body);
               processingError = true;
             }
-            logger.info(dest + ': ' + res.statusCode);
-            logger.info(res.headers['content-location']);
+            logger.info(dest + ': ' + (res && res.statusCode));
+            logger.info(res && res.headers && res.headers['content-location']);
             return nxtFile();
           });
         }
