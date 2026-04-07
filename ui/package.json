@@ -9,8 +9,6 @@
     "lint": "eslint . --ext .vue,.js --fix"
   },
   "dependencies": {
-    "@carbon/icons-vue": "^10.92.0",
-    "@carbon/vue": "^3.0.20",
     "axios": "^1.7.0",
     "carbon-components": "^10.58.0",
     "dayjs": "^1.11.0",
