@@ -42,6 +42,7 @@
   "clients": [
     { "id": "openmrs", "displayName": "OpenMRS" },
     { "id": "openelis", "displayName": "OpenELIS" },
+    { "id": "test", "displayName": "Test" },
     { "id": "cr", "displayName": "Client Registry" }
   ],
   "matching": {

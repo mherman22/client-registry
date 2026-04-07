@@ -28,6 +28,7 @@ async function submitPatient(patient, token) {
     headers: {
       'Content-Type': 'application/fhir+json',
       Authorization: `Bearer ${token}`,
+      'x-openhim-clientid': 'test',
     },
   });
 }
@@ -38,7 +39,10 @@ async function submitPatient(patient, token) {
 async function queryPatient(params, token) {
   return api.get('/fhir/Patient', {
     params,
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'x-openhim-clientid': 'test',
+    },
   });
 }
 
