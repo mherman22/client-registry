@@ -188,7 +188,13 @@ async function loadPage(url) {
 async function loadUrl(url) {
   const res = await axios.get(url)
   const bundle = res.data
-  totalPatients.value = bundle.total || 0
+  if (!bundle || typeof bundle !== 'object' || !bundle.resourceType) {
+    console.warn('Unexpected API response:', bundle)
+    totalPatients.value = 0
+    patients.value = []
+    return
+  }
+  totalPatients.value = typeof bundle.total === 'number' ? bundle.total : 0
   patients.value = []
   nextPageUrl.value = ''
   prevPageUrl.value = ''
