@@ -18,51 +18,64 @@
       />
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="text-center py-16 text-carbon-400">
-      <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-      </svg>
-      <p class="text-sm">Loading flagged matches...</p>
-    </div>
+    <!-- Review Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium">Patient Name</th>
+            <th class="px-4 py-3 text-left font-medium">Source</th>
+            <th class="px-4 py-3 text-left font-medium">Reason</th>
+            <th class="px-4 py-3 text-left font-medium">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loading -->
+          <tr v-if="loading">
+            <td :colspan="4" class="px-4 py-16 text-center">
+              <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              <p class="text-sm text-carbon-400">Loading flagged matches...</p>
+            </td>
+          </tr>
 
-    <!-- Empty State -->
-    <div v-else-if="filteredReviews.length === 0" class="text-center py-16">
-      <div class="text-carbon-300 mb-3">
-        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </div>
-      <h3 class="text-lg font-medium text-carbon-500">No action items</h3>
-      <p class="text-sm text-carbon-400">All patient matches are resolved</p>
-    </div>
+          <!-- Empty State -->
+          <tr v-else-if="filteredReviews.length === 0">
+            <td :colspan="4" class="px-4 py-16 text-center">
+              <div class="text-carbon-300 mb-3">
+                <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-carbon-500">No action items</h3>
+              <p class="text-sm text-carbon-400">All patient matches are resolved</p>
+            </td>
+          </tr>
 
-    <!-- Review List -->
-    <div v-else>
-      <div
-        v-for="item in filteredReviews"
-        :key="item.uid"
-        class="bg-white border border-carbon-100 p-4 mb-3 hover:shadow-sm transition cursor-pointer"
-        @click="openReview(item)"
-      >
-        <div class="flex items-start justify-between mb-1">
-          <div class="font-semibold text-carbon-900">{{ item.given }} {{ item.family }}</div>
-          <span
-            class="text-xs font-medium px-2 py-0.5 rounded-full"
-            :class="item.reason === 'conflict' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'"
+          <!-- Data Rows -->
+          <tr
+            v-for="item in filteredReviews"
+            :key="item.uid"
+            class="border-b border-carbon-100 hover:bg-carbon-50 cursor-pointer"
+            @click="openReview(item)"
           >
-            {{ item.reason }}
-          </span>
-        </div>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-carbon-500">
-          <span v-if="item.source">
-            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ getSourceName(item.source) }}</span>
-          </span>
-          <span v-if="item.source_id">ID: {{ item.source_id }}</span>
-          <span v-if="item.date">Flagged: {{ dayjs(item.date).format('MMM D, YYYY HH:mm') }}</span>
-        </div>
-      </div>
+            <td class="px-4 py-3 font-medium text-carbon-900">{{ item.given }} {{ item.family }}</td>
+            <td class="px-4 py-3">
+              <span v-if="item.source" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ getSourceName(item.source) }}</span>
+              <span v-else class="text-carbon-400">--</span>
+            </td>
+            <td class="px-4 py-3">
+              <span
+                class="text-xs font-medium px-2 py-0.5 rounded-full"
+                :class="item.reason === 'conflict' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'"
+              >{{ item.reason }}</span>
+            </td>
+            <td class="px-4 py-3 text-carbon-600">{{ item.date ? dayjs(item.date).format('MMM D, YYYY HH:mm') : '--' }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>

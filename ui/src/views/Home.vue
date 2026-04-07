@@ -98,68 +98,87 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="text-center py-16 text-carbon-400">
-      <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-      </svg>
-      <p class="text-sm">Loading patients...</p>
-    </div>
+    <!-- Patient Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium">Name</th>
+            <th class="px-4 py-3 text-left font-medium">Gender</th>
+            <th class="px-4 py-3 text-left font-medium">Date of Birth</th>
+            <th class="px-4 py-3 text-left font-medium">Phone</th>
+            <th class="px-4 py-3 text-left font-medium">Source</th>
+            <th class="px-4 py-3 text-left font-medium">Identifiers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loading State -->
+          <tr v-if="loading">
+            <td :colspan="6" class="px-4 py-16 text-center">
+              <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              <p class="text-sm text-carbon-400">Loading patients...</p>
+            </td>
+          </tr>
 
-    <!-- Empty State -->
-    <div v-else-if="patients.length === 0" class="bg-white border border-carbon-100 text-center py-16">
-      <div class="text-carbon-300 mb-3">
-        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-        </svg>
-      </div>
-      <h3 class="text-lg font-medium text-carbon-500">No patients found</h3>
-      <p class="text-sm text-carbon-400 mt-1">Try adjusting your search criteria or register a new patient</p>
-    </div>
+          <!-- Empty State -->
+          <tr v-else-if="patients.length === 0">
+            <td :colspan="6" class="px-4 py-16 text-center">
+              <div class="text-carbon-300 mb-3">
+                <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-carbon-500">No patients found</h3>
+              <p class="text-sm text-carbon-400 mt-1">Try adjusting your search criteria or register a new patient</p>
+            </td>
+          </tr>
 
-    <!-- Patient List -->
-    <div v-else>
-      <div
-        v-for="patient in patients"
-        :key="patient.id"
-        class="bg-white border border-carbon-100 p-4 mb-3 hover:shadow-sm transition cursor-pointer"
-        @click="openPatient(patient.id)"
-      >
-        <div class="font-semibold text-carbon-900 mb-1">{{ patient.name }}</div>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-carbon-500 mb-2">
-          <span v-if="patient.gender">{{ patient.gender }}</span>
-          <span v-if="patient.birthDate">DOB: {{ patient.birthDate }}</span>
-          <span v-if="patient.phone">Phone: {{ patient.phone }}</span>
-          <span v-if="patient.source" class="ml-auto">
-            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ patient.source }}</span>
-          </span>
-        </div>
-        <div class="flex flex-wrap gap-1.5">
-          <span
-            v-for="(id, idx) in patient.identifiers"
-            :key="idx"
-            class="text-xs font-medium px-2 py-0.5 rounded-full bg-carbon-100 text-carbon-600"
+          <!-- Data Rows -->
+          <tr
+            v-for="patient in patients"
+            :key="patient.id"
+            class="border-b border-carbon-100 hover:bg-carbon-50 cursor-pointer"
           >
-            {{ id.label }}: {{ id.value }}
-          </span>
-        </div>
-      </div>
+            <td class="px-4 py-3">
+              <a class="text-blue-600 hover:underline cursor-pointer font-medium" @click="openPatient(patient.id)">{{ patient.name }}</a>
+            </td>
+            <td class="px-4 py-3 text-carbon-600">{{ patient.gender || '--' }}</td>
+            <td class="px-4 py-3 text-carbon-600">{{ patient.birthDate || '--' }}</td>
+            <td class="px-4 py-3 text-carbon-600">{{ patient.phone || '--' }}</td>
+            <td class="px-4 py-3">
+              <span v-if="patient.source" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ patient.source }}</span>
+              <span v-else class="text-carbon-400">--</span>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap gap-1">
+                <span
+                  v-for="(id, idx) in patient.identifiers"
+                  :key="idx"
+                  class="text-xs font-medium px-2 py-0.5 rounded-full bg-carbon-100 text-carbon-600"
+                >{{ id.label }}: {{ id.value }}</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-      <!-- Pagination -->
-      <div class="flex items-center justify-center gap-4 py-6">
-        <button
-          class="h-10 px-4 border border-carbon-300 text-carbon-700 text-sm hover:bg-carbon-50 disabled:opacity-40 disabled:cursor-not-allowed"
-          :disabled="!prevPageUrl"
-          @click="loadPage(prevPageUrl)"
-        >Previous</button>
-        <span class="text-sm text-carbon-500">{{ patients.length }} patients shown</span>
-        <button
-          class="h-10 px-4 border border-carbon-300 text-carbon-700 text-sm hover:bg-carbon-50 disabled:opacity-40 disabled:cursor-not-allowed"
-          :disabled="!nextPageUrl"
-          @click="loadPage(nextPageUrl)"
-        >Next</button>
-      </div>
+    <!-- Pagination -->
+    <div v-if="!loading && patients.length > 0" class="flex items-center justify-center gap-4 py-6">
+      <button
+        class="h-10 px-4 border border-carbon-300 text-carbon-700 text-sm hover:bg-carbon-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        :disabled="!prevPageUrl"
+        @click="loadPage(prevPageUrl)"
+      >Previous</button>
+      <span class="text-sm text-carbon-500">{{ patients.length }} patients shown</span>
+      <button
+        class="h-10 px-4 border border-carbon-300 text-carbon-700 text-sm hover:bg-carbon-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        :disabled="!nextPageUrl"
+        @click="loadPage(nextPageUrl)"
+      >Next</button>
     </div>
   </div>
 </template>

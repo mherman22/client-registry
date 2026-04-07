@@ -24,32 +24,34 @@
       >Refresh</button>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="text-center py-16 text-carbon-400">
-      <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-      </svg>
-      <p class="text-sm">Loading audit events...</p>
-    </div>
-
     <!-- Table -->
-    <div v-else class="overflow-x-auto">
+    <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
           <tr>
-            <th class="px-4 py-3 text-left">Timestamp</th>
-            <th class="px-4 py-3 text-left">Type</th>
-            <th class="px-4 py-3 text-left">Action</th>
-            <th class="px-4 py-3 text-left">Outcome</th>
-            <th class="px-4 py-3 text-left">Agent</th>
-            <th class="px-4 py-3 text-left">Entity</th>
+            <th class="px-4 py-3 text-left font-medium">Timestamp</th>
+            <th class="px-4 py-3 text-left font-medium">Type</th>
+            <th class="px-4 py-3 text-left font-medium">Action</th>
+            <th class="px-4 py-3 text-left font-medium">Outcome</th>
+            <th class="px-4 py-3 text-left font-medium">Agent</th>
+            <th class="px-4 py-3 text-left font-medium">Entity</th>
           </tr>
         </thead>
         <tbody>
+          <!-- Loading State -->
+          <tr v-if="loading">
+            <td :colspan="6" class="px-4 py-16 text-center">
+              <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              <p class="text-sm text-carbon-400">Loading audit events...</p>
+            </td>
+          </tr>
+
           <!-- Empty State -->
-          <tr v-if="filteredEvents.length === 0">
-            <td colspan="6" class="px-4 py-16 text-center">
+          <tr v-else-if="filteredEvents.length === 0">
+            <td :colspan="6" class="px-4 py-16 text-center">
               <div class="text-carbon-300 mb-3">
                 <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
