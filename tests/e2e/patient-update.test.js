@@ -33,6 +33,7 @@ describe('Patient Update - PUT /fhir/Patient/:id', () => {
       headers: {
         'Content-Type': 'application/fhir+json',
         Authorization: `Bearer ${token}`,
+        'x-openhim-clientid': 'test',
       },
     });
 

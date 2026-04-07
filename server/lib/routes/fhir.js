@@ -244,6 +244,21 @@ router.post('/', (req, res) => {
       }
       matchMixin.addPatient(clientID, patientsBundle, (err, responseBundle, responseHeaders, operationSummary) => {
         if (err) {
+          if (!responseBundle || !responseBundle.entry || responseBundle.entry.length === 0) {
+            return callback(null, {
+              code: 400,
+              responseBundle: {
+                resourceType: "OperationOutcome",
+                issue: [{
+                  severity: "error",
+                  code: "required",
+                  diagnostics: "No valid patients could be processed. Ensure patient identifiers use a registered system URI."
+                }]
+              },
+              responseHeaders: responseHeaders || { patientID: [], CRUID: [] },
+              operationSummary: operationSummary || []
+            });
+          }
           return callback(null, {code: 500, err, responseBundle, responseHeaders, operationSummary});
         }
         return callback(null, {code: 200, err, responseBundle, responseHeaders, operationSummary});

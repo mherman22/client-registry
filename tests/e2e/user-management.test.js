@@ -54,7 +54,7 @@ describe('User Management - /ocrux/user/*', () => {
         password: 'TestPass123!',
         role: 'Admin',
       },
-      { headers: headers() },
+      { headers: headers(), validateStatus: () => true },
     );
 
     expect([200, 201]).toContain(res.status);
@@ -66,7 +66,7 @@ describe('User Management - /ocrux/user/*', () => {
     await api.post(
       '/ocrux/user/addUser',
       { userName: username, password: 'OldPass123!', role: 'Admin' },
-      { headers: headers() },
+      { headers: headers(), validateStatus: () => true },
     );
 
     const res = await api.post(

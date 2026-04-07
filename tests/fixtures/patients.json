@@ -38,7 +38,7 @@
     "resourceType": "Patient",
     "identifier": [
       {
-        "system": "http://clientregistry.org/openelis",
+        "system": "http://openelis-global.org/pat_nationalId",
         "value": "test-openelis-B"
       },
       {
