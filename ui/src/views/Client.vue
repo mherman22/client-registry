@@ -69,11 +69,11 @@
                       </v-list-item>
                       <v-list-item
                         v-for="(name, j) in patient.name"
-                        :key="`${j}-${name.use}`"
+                        :key="`${j}-${name.use || 'name'}`"
                       >
-                        <v-list-item-content class="text-caption grey--text">{{ $t('surname') }} ({{ name.use }})</v-list-item-content>
+                        <v-list-item-content class="text-caption grey--text">{{ $t('surname') }}<span v-if="name.use"> ({{ name.use }})</span></v-list-item-content>
                         <v-list-item-content class="align-end text-capitalize font-weight-medium">
-                          {{ name.given.join(" ") }} {{ name.family }}
+                          {{ name.given ? name.given.join(" ") : "" }} {{ name.family || "" }}
                         </v-list-item-content>
                       </v-list-item>
                       <v-list-item>
@@ -86,6 +86,12 @@
                         <v-list-item-content class="text-caption grey--text">{{ $t('birth_date') }}</v-list-item-content>
                         <v-list-item-content class="align-end font-weight-medium">
                           {{ patient.birthdate }}
+                        </v-list-item-content>
+                      </v-list-item>
+                      <v-list-item v-if="patient.address && patient.address.length > 0">
+                        <v-list-item-content class="text-caption grey--text">Address</v-list-item-content>
+                        <v-list-item-content class="align-end font-weight-medium">
+                          {{ [patient.address[0].city, patient.address[0].state, patient.address[0].country].filter(Boolean).join(", ") }}
                         </v-list-item-content>
                       </v-list-item>
                       <v-list-item v-if="patient.multipleBirth">
@@ -531,7 +537,7 @@ export default {
                         });
                       } else {
                         identifiers.push({
-                          name: id.system,
+                          name: (id.type && id.type.text) || id.system || "Identifier",
                           value: id.value
                         });
                       }
@@ -632,7 +638,7 @@ export default {
                         });
                       } else {
                         identifiers.push({
-                          name: id.system,
+                          name: (id.type && id.type.text) || id.system || "Identifier",
                           value: id.value
                         });
                       }
