@@ -66,6 +66,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Build OpenCR Docker image from current code
+        run: docker build -f Dockerfile.ci -t ghcr.io/mherman22/client-registry:improved-opencr-fork .
+
       - name: Start OpenCR stack
         working-directory: example
         run: |
