@@ -92,4 +92,57 @@ describe( "Testing express", () => {
     } );
   } );
 
+  test( "Bundle submission without client ID returns 400 OperationOutcome", () => {
+    const BUNDLE_WITH_PATIENT = {
+      resourceType: "Bundle",
+      type: "batch",
+      entry: [{
+        resource: {
+          resourceType: "Patient",
+          identifier: [{
+            system: "http://clientregistry.org/openmrs",
+            value: "test-patient"
+          }]
+        }
+      }]
+    };
+    return supertest(app)
+      .post("/")
+      .send(BUNDLE_WITH_PATIENT)
+      .then((response) => {
+        expect(response.status).toBe(400);
+        expect(response.body.resourceType).toBe("OperationOutcome");
+        expect(response.body.issue[0].code).toBe("required");
+      });
+  } );
+
+  test( "Bundle submission with x-openhim-clientid header extracts client ID", () => {
+    const BUNDLE_WITH_PATIENT = {
+      resourceType: "Bundle",
+      type: "batch",
+      entry: [{
+        resource: {
+          resourceType: "Patient",
+          identifier: [{
+            system: "http://clientregistry.org/openmrs",
+            value: "test-patient-2"
+          }]
+        }
+      }]
+    };
+    // With x-openhim-clientid present, clientID is extracted and the request proceeds past the guard.
+    // matchMixin.addPatient will be called; without full mocks it may return a 500 but not a 400 guard error.
+    return supertest(app)
+      .post("/")
+      .set("x-openhim-clientid", "openmrs")
+      .send(BUNDLE_WITH_PATIENT)
+      .then((response) => {
+        // Must not be a 400 "Client ID is required" error - client ID was extracted successfully
+        expect(response.status).not.toBe(400);
+        if(response.body.resourceType === "OperationOutcome") {
+          expect(response.body.issue[0].code).not.toBe("required");
+        }
+      });
+  } );
+
 } );

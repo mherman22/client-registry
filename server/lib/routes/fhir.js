@@ -223,9 +223,25 @@ router.post('/', (req, res) => {
         clientID = req.headers['x-openhim-clientid'];
       } else if(req.connection && typeof req.connection.getPeerCertificate === "function") {
         const cert = req.connection.getPeerCertificate();
-        if(cert && cert.subject) {
+        if(cert && cert.subject && cert.subject.CN) {
           clientID = cert.subject.CN;
         }
+      }
+      if(!clientID) {
+        return callback(null, {
+          code: 400,
+          responseBundle: {
+            resourceType: "OperationOutcome",
+            issue: [{
+              severity: "error",
+              code: "required",
+              diagnostics: "Client ID is required"
+            }],
+            entry: []
+          },
+          responseHeaders: { patientID: [], CRUID: [] },
+          operationSummary: []
+        });
       }
       matchMixin.addPatient(clientID, patientsBundle, (err, responseBundle, responseHeaders, operationSummary) => {
         if (err) {
@@ -244,16 +260,19 @@ router.post('/', (req, res) => {
     if(!code) {
       code = 500;
     }
+    if(results.patients.responseBundle.resourceType === "OperationOutcome") {
+      return res.status(code).json(results.patients.responseBundle);
+    }
     let filteredResponseBundle = [];
     for(let entry of results.patients.responseBundle.entry) {
       let exists = filteredResponseBundle.findIndex((fil) => {
-        return fil.response.location.startsWith(entry.response.location.split('/_history')[0]);
+        return fil && fil.response && entry && entry.response && entry.response.location && fil.response.location.startsWith(entry.response.location.split('/_history')[0]);
       });
       if(exists === -1) {
         filteredResponseBundle.push(entry);
       } else {
         let replaceIndex = filteredResponseBundle.findIndex((fil) => {
-          return parseInt(fil.response.etag) > parseInt(entry.response.etag) && fil.response.location.startsWith(entry.response.location.split('/_history')[0]);
+          return fil && fil.response && entry && entry.response && entry.response.location && parseInt(fil.response.etag) > parseInt(entry.response.etag) && fil.response.location.startsWith(entry.response.location.split('/_history')[0]);
         });
         if(replaceIndex !== -1) {
           filteredResponseBundle.splice(replaceIndex, 1);

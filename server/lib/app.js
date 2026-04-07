@@ -98,8 +98,8 @@ function appRoutes() {
     if(authorized) {
       return next();
     }
-    // When x-openhim-clientid header is present, trust it as the client identity
-    if(req.headers['x-openhim-clientid']) {
+    // When configured to trust the OpenHIM proxy, accept x-openhim-clientid as client identity
+    if(config.get('app:trustOpenHIMClientHeader') && req.headers['x-openhim-clientid']) {
       return next();
     }
     if(!req.connection || typeof req.connection.getPeerCertificate !== "function") {
