@@ -191,8 +191,10 @@ export default {
           for (const entry of bundle.entry) {
             const ae = entry.resource;
             if (!ae) continue;
-            const typeCoding =
-              ae.type && ae.type.coding && ae.type.coding[0];
+            const typeCoding = ae.type && ae.type.coding
+              ? ae.type.coding[0]
+              : ae.type;
+            const subtypeCoding = ae.subtype && ae.subtype[0];
             const agentName =
               ae.agent &&
               ae.agent[0] &&
@@ -211,7 +213,7 @@ export default {
 
             this.events.push({
               recorded: ae.recorded || "",
-              type: this.mapEventType(typeCoding),
+              type: this.mapEventType(typeCoding, subtypeCoding, ae.action),
               action: ae.action || "",
               outcome: ae.outcome || "",
               agent: agentName || "System",
@@ -225,24 +227,37 @@ export default {
       }
       this.loading = false;
     },
-    mapEventType(coding) {
-      if (!coding) return "Unknown";
-      const code = coding.code || "";
-      const display = coding.display || code;
-      if (code === "110110") return "Patient Create";
-      if (code === "110112") return "Patient Update";
-      if (code === "110100") return "Authentication";
-      return display || "Unknown";
+    mapEventType(typeCoding, subtypeCoding, action) {
+      if (!typeCoding) return "Unknown";
+      const typeCode = typeCoding.code || "";
+      const subtypeCode = subtypeCoding && subtypeCoding.code || "";
+
+      // DICOM 110110 = Patient Record — use subtype/action to distinguish
+      if (typeCode === "110110") {
+        if (subtypeCode === "create" || action === "C") return "Patient Create";
+        if (subtypeCode === "update" || action === "U") return "Patient Update";
+        if (subtypeCode === "delete" || action === "D") return "Patient Delete";
+        if (subtypeCode === "read" || action === "R") return "Patient Read";
+        return "Patient Record";
+      }
+      if (typeCode === "110112") return "Query";
+      if (typeCode === "110100") return "Authentication";
+      if (typeCode === "110106") return "Export";
+      if (typeCode === "110107") return "Import";
+
+      return typeCoding.display || subtypeCode || typeCode || "Unknown";
     },
     getEventColor(type) {
       const colors = {
         "Patient Create": "success",
         "Patient Update": "primary",
-        "Patient Merge": "accent",
-        "Match Decision": "info",
-        "Break Match": "warning",
-        Configuration: "secondary",
-        Authentication: "grey",
+        "Patient Delete": "error",
+        "Patient Read": "grey",
+        "Patient Record": "info",
+        "Query": "info",
+        "Authentication": "grey darken-1",
+        "Export": "accent",
+        "Import": "accent",
       };
       return colors[type] || "grey";
     },
