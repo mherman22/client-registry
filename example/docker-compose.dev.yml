@@ -26,7 +26,7 @@ services:
       - opencr-fhir
       - es
     ports:
-      - "3000:3000"
+      - "${OPENCR_PORT:-3000}:3000"
     networks:
       - opencr
 
