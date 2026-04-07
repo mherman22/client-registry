@@ -1388,7 +1388,8 @@ router.get('/potential-matches/:id', (req, res) => {
      * childMatches are the matches of the submitted patient while grandChildMatches are the matches of the childMatches
      */
     if (!patient || patient.resourceType !== 'Patient') {
-      return res.status(404).send(matchResults);
+      logger.warn(`Patient not found or invalid resource for potential-matches request: ${req.params.id}`);
+      return res.status(404).json([]);
     }
     generateScoreMatrix({patient, level: 'childMatches'}, () => {
       return res.status(200).send(matchResults);
@@ -1427,6 +1428,7 @@ router.get('/potential-matches/:id', (req, res) => {
       ESMatches
     }) => {
       if (!patient.link || patient.link.length === 0) {
+        logger.warn(`Patient ${patient.id} has no golden record link; skipping score matrix generation`);
         return callback();
       }
       let link = patient.link[0].other.reference;
