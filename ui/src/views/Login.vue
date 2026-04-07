@@ -1,23 +1,41 @@
 <template>
-  <div class="login-page">
-    <div class="login-card">
-      <div class="login-header">
-        <h1>Open Client Registry</h1>
-        <p>Sign in to manage patient identities</p>
-      </div>
-      <form @submit.prevent="login">
-        <div class="login-field">
-          <label class="bx--label">Username</label>
-          <input v-model="username" class="bx--text-input" placeholder="Enter your username" />
-          <div v-if="errors.username" class="bx--form-requirement">{{ errors.username }}</div>
+  <div class="min-h-screen bg-carbon-50 flex items-center justify-center">
+    <div class="bg-white w-full max-w-md p-8 border-l-4 border-blue-600 shadow-md">
+      <h1 class="text-2xl font-semibold text-carbon-900 mb-1">Open Client Registry</h1>
+      <p class="text-sm text-carbon-500 mb-8">Sign in to manage patient identities</p>
+
+      <form @submit.prevent="login" class="space-y-5">
+        <div>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Username</label>
+          <input
+            v-model="username"
+            type="text"
+            placeholder="Enter your username"
+            class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
+          />
+          <p v-if="errors.username" class="text-red-600 text-xs mt-1">{{ errors.username }}</p>
         </div>
-        <div class="login-field">
-          <label class="bx--label">Password</label>
-          <input v-model="password" type="password" class="bx--text-input" placeholder="Enter your password" />
-          <div v-if="errors.password" class="bx--form-requirement">{{ errors.password }}</div>
+
+        <div>
+          <label class="block text-xs font-medium text-carbon-600 mb-1.5">Password</label>
+          <input
+            v-model="password"
+            type="password"
+            placeholder="Enter your password"
+            class="w-full h-10 px-3 text-sm border border-carbon-300 bg-carbon-50 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
+          />
+          <p v-if="errors.password" class="text-red-600 text-xs mt-1">{{ errors.password }}</p>
         </div>
-        <div v-if="loginError" class="login-error">{{ loginError }}</div>
-        <button type="submit" class="bx--btn bx--btn--primary login-button" :disabled="loading">
+
+        <div v-if="loginError" class="bg-red-50 border-l-4 border-red-600 p-3 text-sm text-red-700">
+          {{ loginError }}
+        </div>
+
+        <button
+          type="submit"
+          :disabled="loading"
+          class="w-full h-10 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:bg-carbon-300 disabled:cursor-not-allowed transition"
+        >
           {{ loading ? 'Signing in...' : 'Sign in' }}
         </button>
       </form>
@@ -80,47 +98,3 @@ async function login() {
   loading.value = false
 }
 </script>
-
-<style scoped>
-.login-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: calc(100vh - 48px);
-  overflow: hidden;
-  background: #f4f4f4;
-}
-.login-card {
-  background: white;
-  width: 100%;
-  max-width: 400px;
-  padding: 2.5rem;
-  border-left: 4px solid #0f62fe;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-.login-header h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #161616;
-  margin: 0 0 0.5rem 0;
-}
-.login-header p {
-  font-size: 0.875rem;
-  color: #525252;
-  margin: 0 0 2rem 0;
-}
-.login-field {
-  margin-bottom: 1.5rem;
-}
-.login-error {
-  background: #fff1f1;
-  border-left: 3px solid #da1e28;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  color: #da1e28;
-  margin-bottom: 1.5rem;
-}
-.login-button {
-  width: 100%;
-}
-</style>

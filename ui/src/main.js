@@ -6,8 +6,7 @@ import { createI18n } from 'vue-i18n'
 import en from './locales/en.json'
 import fr from './locales/fr.json'
 
-import 'carbon-components/css/carbon-components.min.css'
-import './styles/global.scss'
+import './styles/global.css'
 
 const i18n = createI18n({
   legacy: false,
