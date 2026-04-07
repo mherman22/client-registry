@@ -1,8 +1,9 @@
 FROM node:18-bullseye-slim AS ui-builder
 
 WORKDIR /build/ui
-COPY ui/package.json ui/vite.config.js ui/index.html ./
+COPY ui/package.json ui/vite.config.js ui/index.html ui/tailwind.config.js ui/postcss.config.js ./
 COPY ui/src ./src
+COPY ui/public ./public
 RUN npm install && npm run build
 
 FROM node:16-bullseye-slim
