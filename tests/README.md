@@ -1,138 +1,54 @@
-<table border='3' border='1' cellspacing='0' cellpadding='10'>
-            <tr>
-              <th><center> <b>Run Date 2020-02-05T23:57:29</b></center></th>
-            </tr>
-            <tr>
-              <td><center><b>Decision Rules</b><table border='1' cellspacing='0'>
-    <tr>
-      <th>#</th><th>Field</th><th>Algorithm</th><th>Threshold</th>
-    </tr><tr><td rowspan=4>1</td><td>familyName</td><td>damerau-levenshtein</td><td>2</td></tr><tr><td>givenName</td><td>damerau-levenshtein</td><td>2</td></tr><tr><td>gender</td><td>exact</td><td>-</td></tr><tr><td>phone</td><td>exact</td><td>-</td></tr></table></center></td>
-            </tr>
-            <tr>
-              <td><center><b>Match Diagnostics</b><br><table border='1' cellspacing='0'>
-            <tr>
-              <th>Sensitivity</th><th>Specifity</th><th>Precision</th></th><th>F1 Score</th>
-            </tr>
-            <tr>
-              <td>0.837</td><td>1</td><td>1</td><td>0.4556341861731083</td>
-            </tr>
-          </table></center></td>
-            </tr>
-            <tr>
-              <td><center><b>Match Results</b><br><table border='1' cellspacing='0'>
-            <tr>
-              <th>True Positive (TP)</th><th>False Positive (FP)</th><th>True Negative (TN)</th><th>False Negative (FN)</th>
-            </tr>
-            <tr>
-              <td>1674</td><td>0</td><td>3000</td><td>326</td>
-            </tr>
-          </table></center></td>
-            </tr>
-          </table><br><table border='3' border='1' cellspacing='0' cellpadding='10'>
-            <tr>
-              <th><center> <b>Run Date 2020-02-05T23:49:25</b></center></th>
-            </tr>
-            <tr>
-              <td><center><b>Decision Rules</b><table border='1' cellspacing='0'>
-    <tr>
-      <th>#</th><th>Field</th><th>Algorithm</th><th>Threshold</th>
-    </tr><tr><td rowspan=4>1</td><td>familyName</td><td>damerau-levenshtein</td><td>2</td></tr><tr><td>givenName</td><td>damerau-levenshtein</td><td>2</td></tr><tr><td>gender</td><td>exact</td><td>-</td></tr><tr><td>phone</td><td>exact</td><td>-</td></tr></table></center></td>
-            </tr>
-            <tr>
-              <td><center><b>Match Diagnostics</b><br><table border='1' cellspacing='0'>
-            <tr>
-              <th>Sensitivity</th><th>Specifity</th><th>F1 Score</th>
-            </tr>
-            <tr>
-              <td>0.837</td><td>1</td><td>0.4556341861731083</td>
-            </tr>
-          </table></center></td>
-            </tr>
-            <tr>
-              <td><center><b>Match Results</b><br><table border='1' cellspacing='0'>
-            <tr>
-              <th>True Positive (TP)</th><th>False Positive (FP)</th><th>True Negative (TN)</th><th>False Negative (FN)</th>
-            </tr>
-            <tr>
-              <td>1674</td><td>0</td><td>3000</td><td>326</td>
-            </tr>
-          </table></center></td>
-            </tr>
-          </table><br><table border='3' border='1' cellspacing='0' cellpadding='10'>
-  <tr>
-    <th>
-      <center> <b>Run Date 2020-02-01T17:05:24</b></center>
-    </th>
-  </tr>
-  <tr>
-    <td>
-      <center><b>Decision Rules</b>
-        <table border='1' cellspacing='0'>
-          <tr>
-            <th>#</th>
-            <th>Field</th>
-            <th>Algorithm</th>
-            <th>Threshold</th>
-          </tr>
-          <tr>
-            <td rowspan=4>1</td>
-            <td>familyName</td>
-            <td>damerau-levenshtein</td>
-            <td>2</td>
-          </tr>
-          <tr>
-            <td>givenName</td>
-            <td>damerau-levenshtein</td>
-            <td>2</td>
-          </tr>
-          <tr>
-            <td>gender</td>
-            <td>exact</td>
-            <td>-</td>
-          </tr>
-          <tr>
-            <td>phone</td>
-            <td>exact</td>
-            <td>-</td>
-          </tr>
-        </table>
-      </center>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <center><b>Match Diagnostics</b><br>
-        <table border='1' cellspacing='0'>
-          <tr>
-            <th>Sensitivity</th>
-            <th>Specifity</th>
-          </tr>
-          <tr>
-            <td>0.837</td>
-            <td>1</td>
-          </tr>
-        </table>
-      </center>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <center><b>Match Results</b><br>
-        <table border='1' cellspacing='0'>
-          <tr>
-            <th>True Positive (TP)</th>
-            <th>False Positive (FP)</th>
-            <th>True Negative (TN)</th>
-            <th>False Negative (FN)</th>
-          </tr>
-          <tr>
-            <td>1674</td>
-            <td>0</td>
-            <td>3000</td>
-            <td>326</td>
-          </tr>
-        </table>
-      </center>
-    </td>
-  </tr>
-</table><br>
+# OpenCR Tests
+
+## Quick Start
+
+```bash
+cd tests
+npm install
+OPENCR_URL=https://localhost:3002 npm test
+```
+
+## E2E Tests Only
+
+End-to-end tests run against a live OpenCR instance. Set `OPENCR_URL` to
+point at the server (defaults to `https://localhost:3000`).
+
+```bash
+OPENCR_URL=https://localhost:3002 npm run test:e2e
+```
+
+## Unit Tests Only
+
+Unit tests mock all external dependencies and do not require a running server.
+
+```bash
+npm run test:unit
+```
+
+## Directory Layout
+
+```
+tests/
+  setup.js              - Shared axios client, auth helpers, utilities
+  fixtures/
+    patients.json       - Sample FHIR Patient resources
+    bundles.json        - Sample FHIR Bundle resources
+  e2e/
+    patient-create.test.js   - Create patient via POST /fhir/Patient
+    patient-update.test.js   - Update patient via PUT /fhir/Patient/:id
+    patient-query.test.js    - Query by identifier or demographics
+    patient-match.test.js    - Auto-match and potential match workflows
+    match-break.test.js      - Break and unbreak match links
+    audit.test.js            - Verify AuditEvent creation
+  unit/
+    fhir-routes.test.js      - FHIR route handler unit tests
+    match-routes.test.js     - Match route handler unit tests
+  data/
+    uganda-dataset.csv       - Matching accuracy benchmark data
+```
+
+## Test Data
+
+Each e2e test generates unique identifiers at runtime so tests are
+idempotent and do not collide when run in parallel or repeatedly against
+the same server.

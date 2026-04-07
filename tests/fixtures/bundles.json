@@ -1,0 +1,120 @@
+{
+  "singlePatientBundle": {
+    "resourceType": "Bundle",
+    "type": "batch",
+    "entry": [
+      {
+        "resource": {
+          "resourceType": "Patient",
+          "identifier": [
+            {
+              "system": "http://clientregistry.org/openmrs",
+              "value": "bundle-patient-001"
+            },
+            {
+              "system": "http://health.go.ug/cr/nationalid",
+              "value": "BUNDLE-NAT-001"
+            }
+          ],
+          "active": true,
+          "name": [
+            {
+              "use": "official",
+              "family": "Mugisha",
+              "given": ["Robert"]
+            }
+          ],
+          "gender": "male",
+          "birthDate": "1990-06-15",
+          "meta": {
+            "tag": [
+              {
+                "system": "http://openclientregistry.org/fhir/clientid",
+                "code": "openmrs",
+                "display": "OpenMRS"
+              }
+            ]
+          }
+        },
+        "request": {
+          "method": "PUT",
+          "url": "Patient"
+        }
+      }
+    ]
+  },
+  "multiPatientBundle": {
+    "resourceType": "Bundle",
+    "type": "batch",
+    "entry": [
+      {
+        "resource": {
+          "resourceType": "Patient",
+          "identifier": [
+            {
+              "system": "http://clientregistry.org/openmrs",
+              "value": "bundle-patient-002"
+            }
+          ],
+          "active": true,
+          "name": [
+            {
+              "use": "official",
+              "family": "Akello",
+              "given": ["Grace"]
+            }
+          ],
+          "gender": "female",
+          "birthDate": "1988-02-20",
+          "meta": {
+            "tag": [
+              {
+                "system": "http://openclientregistry.org/fhir/clientid",
+                "code": "openmrs",
+                "display": "OpenMRS"
+              }
+            ]
+          }
+        },
+        "request": {
+          "method": "PUT",
+          "url": "Patient"
+        }
+      },
+      {
+        "resource": {
+          "resourceType": "Patient",
+          "identifier": [
+            {
+              "system": "http://clientregistry.org/openmrs",
+              "value": "bundle-patient-003"
+            }
+          ],
+          "active": true,
+          "name": [
+            {
+              "use": "official",
+              "family": "Ssempa",
+              "given": ["David"]
+            }
+          ],
+          "gender": "male",
+          "birthDate": "1975-11-30",
+          "meta": {
+            "tag": [
+              {
+                "system": "http://openclientregistry.org/fhir/clientid",
+                "code": "openmrs",
+                "display": "OpenMRS"
+              }
+            ]
+          }
+        },
+        "request": {
+          "method": "PUT",
+          "url": "Patient"
+        }
+      }
+    ]
+  }
+}

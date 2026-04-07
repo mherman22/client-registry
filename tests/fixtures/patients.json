@@ -1,0 +1,163 @@
+{
+  "patientA": {
+    "resourceType": "Patient",
+    "identifier": [
+      {
+        "system": "http://clientregistry.org/openmrs",
+        "value": "test-openmrs-A"
+      },
+      {
+        "system": "http://health.go.ug/cr/nationalid",
+        "value": "TEST-NAT-001"
+      }
+    ],
+    "active": true,
+    "name": [
+      {
+        "use": "official",
+        "family": "Nakamura",
+        "given": ["Takeshi"]
+      }
+    ],
+    "gender": "male",
+    "birthDate": "1985-03-15",
+    "telecom": [
+      { "system": "phone", "value": "0700-111-001" }
+    ],
+    "meta": {
+      "tag": [
+        {
+          "system": "http://openclientregistry.org/fhir/clientid",
+          "code": "openmrs",
+          "display": "OpenMRS"
+        }
+      ]
+    }
+  },
+  "patientB": {
+    "resourceType": "Patient",
+    "identifier": [
+      {
+        "system": "http://clientregistry.org/openelis",
+        "value": "test-openelis-B"
+      },
+      {
+        "system": "http://health.go.ug/cr/nationalid",
+        "value": "TEST-NAT-001"
+      }
+    ],
+    "active": true,
+    "name": [
+      {
+        "use": "official",
+        "family": "Nakamura",
+        "given": ["Takeshi"]
+      }
+    ],
+    "gender": "male",
+    "birthDate": "1985-03-15",
+    "telecom": [
+      { "system": "phone", "value": "0700-111-002" }
+    ],
+    "meta": {
+      "tag": [
+        {
+          "system": "http://openclientregistry.org/fhir/clientid",
+          "code": "openelis",
+          "display": "OpenELIS"
+        }
+      ]
+    }
+  },
+  "patientC": {
+    "resourceType": "Patient",
+    "identifier": [
+      {
+        "system": "http://clientregistry.org/openmrs",
+        "value": "test-openmrs-C"
+      },
+      {
+        "system": "http://health.go.ug/cr/nationalid",
+        "value": "TEST-NAT-UNIQUE-999"
+      }
+    ],
+    "active": true,
+    "name": [
+      {
+        "use": "official",
+        "family": "Okonkwo",
+        "given": ["Adaeze"]
+      }
+    ],
+    "gender": "female",
+    "birthDate": "1992-07-22",
+    "telecom": [
+      { "system": "phone", "value": "0700-222-003" }
+    ],
+    "meta": {
+      "tag": [
+        {
+          "system": "http://openclientregistry.org/fhir/clientid",
+          "code": "openmrs",
+          "display": "OpenMRS"
+        }
+      ]
+    }
+  },
+  "patientD": {
+    "resourceType": "Patient",
+    "identifier": [
+      {
+        "system": "http://clientregistry.org/openmrs",
+        "value": "test-openmrs-D"
+      }
+    ],
+    "active": true,
+    "name": [
+      {
+        "use": "official",
+        "family": "Dupont",
+        "given": ["Marie"]
+      }
+    ],
+    "gender": "female",
+    "birthDate": "2000-12-01",
+    "multipleBirthInteger": 2,
+    "meta": {
+      "tag": [
+        {
+          "system": "http://openclientregistry.org/fhir/clientid",
+          "code": "openmrs",
+          "display": "OpenMRS"
+        }
+      ]
+    }
+  },
+  "patientE": {
+    "resourceType": "Patient",
+    "identifier": [
+      {
+        "system": "http://clientregistry.org/openmrs",
+        "value": "test-openmrs-E"
+      }
+    ],
+    "active": true,
+    "name": [
+      {
+        "family": "Kirezi",
+        "given": ["Jean"]
+      }
+    ],
+    "gender": "male",
+    "birthDate": "1978-09-10",
+    "meta": {
+      "tag": [
+        {
+          "system": "http://openclientregistry.org/fhir/clientid",
+          "code": "openmrs",
+          "display": "OpenMRS"
+        }
+      ]
+    }
+  }
+}
