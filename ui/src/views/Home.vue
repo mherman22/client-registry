@@ -103,11 +103,26 @@
       <table class="w-full text-sm">
         <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
           <tr>
-            <th class="px-4 py-3 text-left font-medium">Name</th>
-            <th class="px-4 py-3 text-left font-medium">Gender</th>
-            <th class="px-4 py-3 text-left font-medium">Date of Birth</th>
-            <th class="px-4 py-3 text-left font-medium">Phone</th>
-            <th class="px-4 py-3 text-left font-medium">Source</th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('name')">
+              Name
+              <span v-if="sortKey === 'name'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('gender')">
+              Gender
+              <span v-if="sortKey === 'gender'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('birthDate')">
+              Date of Birth
+              <span v-if="sortKey === 'birthDate'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('phone')">
+              Phone
+              <span v-if="sortKey === 'phone'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('source')">
+              Source
+              <span v-if="sortKey === 'source'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
             <th class="px-4 py-3 text-left font-medium">Identifiers</th>
           </tr>
         </thead>
@@ -138,7 +153,7 @@
 
           <!-- Data Rows -->
           <tr
-            v-for="patient in patients"
+            v-for="patient in sortedPatients"
             :key="patient.id"
             class="border-b border-carbon-100 hover:bg-carbon-50 cursor-pointer"
           >
@@ -184,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useAppStore } from '@/stores/app'
@@ -200,9 +215,31 @@ const selectedPOS = ref('')
 const birthDate = ref('')
 const patients = ref([])
 const totalPatients = ref(0)
+const sortKey = ref('')
+const sortAsc = ref(true)
 const loading = ref(false)
 const nextPageUrl = ref('')
 const prevPageUrl = ref('')
+
+function sortBy(key) {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortKey.value = key
+    sortAsc.value = true
+  }
+}
+
+const sortedPatients = computed(() => {
+  if (!sortKey.value) return patients.value
+  return [...patients.value].sort((a, b) => {
+    const va = (a[sortKey.value] || '').toString().toLowerCase()
+    const vb = (b[sortKey.value] || '').toString().toLowerCase()
+    if (va < vb) return sortAsc.value ? -1 : 1
+    if (va > vb) return sortAsc.value ? 1 : -1
+    return 0
+  })
+})
 
 function parsePatient(resource, clientTag) {
   const name = resource.name && resource.name[0]

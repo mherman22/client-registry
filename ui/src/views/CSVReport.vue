@@ -9,10 +9,22 @@
       <table class="w-full text-sm">
         <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
           <tr>
-            <th class="px-4 py-3 text-left font-medium">Report Name</th>
-            <th class="px-4 py-3 text-left font-medium">Date</th>
-            <th class="px-4 py-3 text-left font-medium">Records</th>
-            <th class="px-4 py-3 text-left font-medium">Status</th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('name')">
+              Report Name
+              <span v-if="sortKey === 'name'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('date')">
+              Date
+              <span v-if="sortKey === 'date'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('records')">
+              Records
+              <span v-if="sortKey === 'records'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('status')">
+              Status
+              <span v-if="sortKey === 'status'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
             <th class="px-4 py-3 text-left font-medium">Actions</th>
           </tr>
         </thead>
@@ -43,7 +55,7 @@
 
           <!-- Data Rows -->
           <tr
-            v-for="(report, idx) in reports"
+            v-for="(report, idx) in sortedReports"
             :key="report.id || idx"
             class="border-b border-carbon-100 hover:bg-carbon-50"
           >
@@ -74,12 +86,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
 const reports = ref([])
 const loading = ref(false)
 const selectedReport = ref(null)
+const sortKey = ref('')
+const sortAsc = ref(true)
+
+function sortBy(key) {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortKey.value = key
+    sortAsc.value = true
+  }
+}
+
+const sortedReports = computed(() => {
+  if (!sortKey.value) return reports.value
+  return [...reports.value].sort((a, b) => {
+    const va = (a[sortKey.value] || '').toString().toLowerCase()
+    const vb = (b[sortKey.value] || '').toString().toLowerCase()
+    if (va < vb) return sortAsc.value ? -1 : 1
+    if (va > vb) return sortAsc.value ? 1 : -1
+    return 0
+  })
+})
 
 async function fetchReports() {
   loading.value = true

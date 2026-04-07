@@ -136,9 +136,15 @@
       <table class="w-full text-sm">
         <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
           <tr>
-            <th class="px-4 py-3 text-left font-medium">Username</th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('userName')">
+              Username
+              <span v-if="sortKey === 'userName'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
             <th class="px-4 py-3 text-left font-medium">Name</th>
-            <th class="px-4 py-3 text-left font-medium">Role</th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('role')">
+              Role
+              <span v-if="sortKey === 'role'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
             <th class="px-4 py-3 text-left font-medium">Status</th>
             <th class="px-4 py-3 text-left font-medium">Actions</th>
           </tr>
@@ -170,7 +176,7 @@
 
           <!-- Data Rows -->
           <tr
-            v-for="user in filteredUsers"
+            v-for="user in sortedUsers"
             :key="user.id || user.userName"
             class="border-b border-carbon-100 hover:bg-carbon-50"
           >
@@ -213,6 +219,8 @@ const auth = useAuthStore()
 const users = ref([])
 const search = ref('')
 const loadingUsers = ref(false)
+const sortKey = ref('')
+const sortAsc = ref(true)
 const saving = ref(false)
 const showAddForm = ref(false)
 const changingPwFor = ref(null)
@@ -229,6 +237,26 @@ const filteredUsers = computed(() => {
     (u.surname && u.surname.toLowerCase().includes(s)) ||
     (u.role && u.role.toLowerCase().includes(s))
   )
+})
+
+function sortBy(key) {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortKey.value = key
+    sortAsc.value = true
+  }
+}
+
+const sortedUsers = computed(() => {
+  if (!sortKey.value) return filteredUsers.value
+  return [...filteredUsers.value].sort((a, b) => {
+    const va = (a[sortKey.value] || '').toString().toLowerCase()
+    const vb = (b[sortKey.value] || '').toString().toLowerCase()
+    if (va < vb) return sortAsc.value ? -1 : 1
+    if (va > vb) return sortAsc.value ? 1 : -1
+    return 0
+  })
 })
 
 async function fetchUsers() {

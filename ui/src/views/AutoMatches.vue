@@ -23,10 +23,22 @@
       <table class="w-full text-sm">
         <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
           <tr>
-            <th class="px-4 py-3 text-left font-medium">Patient Name</th>
-            <th class="px-4 py-3 text-left font-medium">Source</th>
-            <th class="px-4 py-3 text-left font-medium">Reason</th>
-            <th class="px-4 py-3 text-left font-medium">Date</th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('name')">
+              Patient Name
+              <span v-if="sortKey === 'name'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('source')">
+              Source
+              <span v-if="sortKey === 'source'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('reason')">
+              Reason
+              <span v-if="sortKey === 'reason'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('date')">
+              Date
+              <span v-if="sortKey === 'date'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -56,7 +68,7 @@
 
           <!-- Data Rows -->
           <tr
-            v-for="item in filteredMatches"
+            v-for="item in sortedItems"
             :key="item.uid"
             class="border-b border-carbon-100 hover:bg-carbon-50 cursor-pointer"
             @click="openMatch(item)"
@@ -90,6 +102,8 @@ const app = useAppStore()
 const matches = ref([])
 const search = ref('')
 const loading = ref(false)
+const sortKey = ref('')
+const sortAsc = ref(true)
 
 const filteredMatches = computed(() => {
   if (!search.value) return matches.value
@@ -101,6 +115,32 @@ const filteredMatches = computed(() => {
     (m.reason && m.reason.toLowerCase().includes(s)) ||
     (m.source_id && m.source_id.toLowerCase().includes(s))
   )
+})
+
+function sortBy(key) {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortKey.value = key
+    sortAsc.value = true
+  }
+}
+
+const sortedItems = computed(() => {
+  if (!sortKey.value) return filteredMatches.value
+  return [...filteredMatches.value].sort((a, b) => {
+    let va, vb
+    if (sortKey.value === 'name') {
+      va = ((a.given || '') + ' ' + (a.family || '')).toLowerCase()
+      vb = ((b.given || '') + ' ' + (b.family || '')).toLowerCase()
+    } else {
+      va = (a[sortKey.value] || '').toString().toLowerCase()
+      vb = (b[sortKey.value] || '').toString().toLowerCase()
+    }
+    if (va < vb) return sortAsc.value ? -1 : 1
+    if (va > vb) return sortAsc.value ? 1 : -1
+    return 0
+  })
 })
 
 function getSourceName(source) {

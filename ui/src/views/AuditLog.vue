@@ -29,12 +29,30 @@
       <table class="w-full text-sm">
         <thead class="text-xs uppercase text-carbon-500 bg-carbon-50 border-b border-carbon-200">
           <tr>
-            <th class="px-4 py-3 text-left font-medium">Timestamp</th>
-            <th class="px-4 py-3 text-left font-medium">Type</th>
-            <th class="px-4 py-3 text-left font-medium">Action</th>
-            <th class="px-4 py-3 text-left font-medium">Outcome</th>
-            <th class="px-4 py-3 text-left font-medium">Agent</th>
-            <th class="px-4 py-3 text-left font-medium">Entity</th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('recorded')">
+              Timestamp
+              <span v-if="sortKey === 'recorded'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('type')">
+              Type
+              <span v-if="sortKey === 'type'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('action')">
+              Action
+              <span v-if="sortKey === 'action'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('outcome')">
+              Outcome
+              <span v-if="sortKey === 'outcome'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('agent')">
+              Agent
+              <span v-if="sortKey === 'agent'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
+            <th class="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-carbon-900" @click="sortBy('entity')">
+              Entity
+              <span v-if="sortKey === 'entity'" class="ml-1 text-blue-600">{{ sortAsc ? '↑' : '↓' }}</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -64,7 +82,7 @@
 
           <!-- Data Rows -->
           <tr
-            v-for="(ev, idx) in filteredEvents"
+            v-for="(ev, idx) in sortedEvents"
             :key="idx"
             class="border-b border-carbon-100 hover:bg-carbon-50"
             :class="idx % 2 === 1 ? 'bg-white' : 'bg-carbon-50/30'"
@@ -118,6 +136,8 @@ const events = ref([])
 const search = ref('')
 const dateFilter = ref('')
 const loading = ref(false)
+const sortKey = ref('')
+const sortAsc = ref(true)
 
 const filteredEvents = computed(() => {
   let result = events.value
@@ -133,6 +153,26 @@ const filteredEvents = computed(() => {
     result = result.filter(e => e.recorded && e.recorded.startsWith(dateFilter.value))
   }
   return result
+})
+
+function sortBy(key) {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortKey.value = key
+    sortAsc.value = true
+  }
+}
+
+const sortedEvents = computed(() => {
+  if (!sortKey.value) return filteredEvents.value
+  return [...filteredEvents.value].sort((a, b) => {
+    const va = (a[sortKey.value] || '').toString().toLowerCase()
+    const vb = (b[sortKey.value] || '').toString().toLowerCase()
+    if (va < vb) return sortAsc.value ? -1 : 1
+    if (va > vb) return sortAsc.value ? 1 : -1
+    return 0
+  })
 })
 
 function mapEventType(typeCoding, subtypeCoding, action) {
