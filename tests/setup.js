@@ -21,10 +21,21 @@ async function getToken() {
 }
 
 /**
- * Submit a FHIR Patient resource to OpenCR.
+ * Submit a FHIR Patient resource to OpenCR via a transaction bundle.
+ * Uses POST /fhir/ (bundle endpoint) which correctly reads x-openhim-clientid.
+ * The individual POST /fhir/Patient endpoint crashes without a TLS client cert.
  */
 async function submitPatient(patient, token) {
-  return api.post('/fhir/Patient', patient, {
+  const patientId = patient.id || uniqueId('pat');
+  const bundle = {
+    resourceType: 'Bundle',
+    type: 'transaction',
+    entry: [{
+      resource: { ...patient, id: patientId },
+      request: { method: 'PUT', url: `Patient/${patientId}` }
+    }]
+  };
+  return api.post('/fhir/', bundle, {
     headers: {
       'Content-Type': 'application/fhir+json',
       Authorization: `Bearer ${token}`,
