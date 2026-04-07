@@ -1,12 +1,11 @@
 FROM node:16-bullseye-slim
 
 RUN mkdir -p /var/log
-RUN apt-get -qq update && apt-get install -y -qq git wget --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN apt-get -qq update && apt-get install -y -qq git curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 COPY . /src/
 
 WORKDIR /src/ui
-# Remove --openssl-legacy-provider (only needed for Node 17+, breaks Node 16)
 RUN sed -i 's/export NODE_OPTIONS=--openssl-legacy-provider && //g' package.json
 RUN npm install --legacy-peer-deps && npm run build
 
@@ -19,14 +18,9 @@ RUN cp /src/server/config/config_cicd_template.json /src/server/config/config_ci
 ARG NODE_ENV=docker
 ENV NODE_ENV=$NODE_ENV
 
-ENV DOCKERIZE_VERSION=v0.5.0
-RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-
 EXPOSE 3000
 
 ARG DEFAULT_HAPI_FHIR_URL=http://fhir:8080/fhir/metadata
 ENV HAPI_FHIR_URL=$DEFAULT_HAPI_FHIR_URL
 
-ENTRYPOINT ["sh", "-c", "dockerize -wait-retry-interval 5s -timeout 60s -wait $HAPI_FHIR_URL node lib/app.js"]
+ENTRYPOINT ["sh", "-c", "echo 'Waiting for HAPI FHIR...' && until curl -sf $HAPI_FHIR_URL > /dev/null 2>&1; do sleep 5; done && echo 'HAPI FHIR is ready' && node lib/app.js"]

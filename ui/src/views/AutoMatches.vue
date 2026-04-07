@@ -1,122 +1,103 @@
 <template>
-  <div>
-    <div class="d-flex align-center mb-4">
-      <div>
-        <div class="text-h5 font-weight-medium">{{ $t('menu_auto_matches') }}</div>
-        <div class="text-subtitle-2 grey--text">Automatically matched patient records</div>
-      </div>
-      <v-spacer></v-spacer>
+  <div class="content-area">
+    <div class="page-header">
+      <h1>Auto-Matches</h1>
+      <p>{{ filteredMatches.length }} automatically matched patient pairs</p>
     </div>
-    <v-card elevation="1" rounded="lg">
-      <v-card-title class="pa-4">
-        <v-text-field
-          v-model="search"
-          prepend-inner-icon="mdi-magnify"
-          :label="$t('search')"
-          single-line
-          hide-details
-          outlined
-          dense
-          rounded
-          clearable
-        ></v-text-field>
-      </v-card-title>
-      <v-divider></v-divider>
-      <v-data-table
-        style="cursor: pointer"
-        :headers="headers"
-        :items="automatches"
-        :options.sync="options"
-        :footer-props="{
-        'items-per-page-options': [5,10,20,50] ,
-        'items-per-page-text':this.$t('row_per_page')}"
-        :no-data-text="$t('no_data')"
-        :loading="loading"
-        :search="search"
-        @click:row="clickIt"
+
+    <div class="search-bar">
+      <input
+        v-model="search"
+        class="bx--text-input bx--search-input"
+        placeholder="Search by name, ID, or reason..."
+      />
+    </div>
+
+    <div v-if="loading" class="empty-state"><p>Loading auto-matches...</p></div>
+
+    <div v-else-if="filteredMatches.length === 0" class="empty-state">
+      <h3>No auto-matches</h3>
+      <p>No new automatically matched records found</p>
+    </div>
+
+    <div v-else>
+      <div
+        v-for="item in filteredMatches"
+        :key="item.uid"
+        class="patient-card"
+        @click="openMatch(item)"
       >
-        <template v-slot:item.uid="{ item }">
-          <router-link :to="'/resolve/'+item.id+'?flagType='+item.reasonCode" class="text-decoration-none primary--text font-weight-medium">{{ item.uid }}</router-link>
-        </template>
-        <template v-slot:item.reason="{ item }">
-          <v-chip small label color="accent" dark>
-            {{ item.reason }}
-          </v-chip>
-        </template>
-        <template v-slot:item.source="{ item }">
-          <span class="text-uppercase text-caption">{{ getClientDisplayName(item.source) }}</span>
-        </template>
-        <template v-slot:item.date="{ item }">
-          <span class="text-caption grey--text text--darken-1">{{ item.date | moment("MMMM DD YYYY HH:mm:ssZ") }}</span>
-        </template>
-        <template v-slot:no-data>
-          <div class="text-center pa-8">
-            <v-icon size="64" color="grey lighten-1">mdi-link-variant</v-icon>
-            <div class="text-h6 grey--text mt-3">{{ $t('no_data') }}</div>
-            <div class="text-subtitle-2 grey--text text--lighten-1 mt-1">No auto matches found</div>
-          </div>
-        </template>
-      </v-data-table>
-    </v-card>
+        <div class="patient-name">{{ item.given }} {{ item.family }}</div>
+        <div class="patient-meta">
+          <span v-if="item.source">
+            <span class="bx--tag bx--tag--blue">{{ getSourceName(item.source) }}</span>
+          </span>
+          <span v-if="item.source_id">ID: {{ item.source_id }}</span>
+          <span v-if="item.date">Matched: {{ dayjs(item.date).format('MMM D, YYYY HH:mm') }}</span>
+        </div>
+        <div class="patient-ids">
+          <span class="bx--tag bx--tag--teal">{{ item.reason }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-// @ is an alias to /src
-import axios from "axios";
-import { generalMixin } from "@/mixins/generalMixin";
-export default {
-  mixins: [generalMixin],
-  name: "Automatch",
-  components: {
-  },
-  data() {
-    return {
-      automatches: [],
-      debug: "",
-      search: "",
-      loading: false,
-      prevPage: -1,
-      link: [],
-      options: { itemsPerPage: 10, sortBy: ["family"] },
-      rowsPerPageItems: [5, 10, 20, 50],
-      headers: [
-        { text:  this.$t('cr_id'), value: "uid" },
-        { text:  this.$t('surname'), value: "family" },
-        { text:  this.$t('given_names'), value: "given" },
-        { text:  this.$t('source'), value: "source" },
-        { text:  this.$t('source_id') , value: "source_id" },
-        { text:  this.$t('reason'), value: "reason" },
-        { text:  this.$t('date_flagged'), value: "date" }
-      ],
-    };
-  },
-  methods: {
-    getAutomatches() {
-      this.loading = true
-      axios.get('/ocrux/match/get-new-auto-matches').then((resp) => {
-        this.automatches = resp.data
-        this.loading = false
-      })
-    },
-    clickIt: function(client) {
-      this.$router.push({ name: "automatch", params: { clientId: client.uid } });
-    }
-  },
-  created() {
-    this.getAutomatches()
-  }
-};
-</script>
-<style scoped>
-.v-data-table >>> tbody tr:hover {
-  background-color: #F5F8FA !important;
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import dayjs from 'dayjs'
+import { useAppStore } from '@/stores/app'
+
+const router = useRouter()
+const app = useAppStore()
+
+const matches = ref([])
+const search = ref('')
+const loading = ref(false)
+
+const filteredMatches = computed(() => {
+  if (!search.value) return matches.value
+  const s = search.value.toLowerCase()
+  return matches.value.filter(m =>
+    (m.family && m.family.toLowerCase().includes(s)) ||
+    (m.given && m.given.toLowerCase().includes(s)) ||
+    (m.uid && m.uid.toLowerCase().includes(s)) ||
+    (m.reason && m.reason.toLowerCase().includes(s)) ||
+    (m.source_id && m.source_id.toLowerCase().includes(s))
+  )
+})
+
+function getSourceName(source) {
+  return app.getClientDisplayName(source)
 }
-.v-data-table >>> thead th {
-  font-weight: 600 !important;
-  text-transform: uppercase;
-  font-size: 0.75rem !important;
-  letter-spacing: 0.05em;
-  color: #616161 !important;
+
+function openMatch(item) {
+  router.push({ name: 'client', params: { clientId: item.uid } })
+}
+
+async function fetchAutoMatches() {
+  loading.value = true
+  try {
+    const res = await axios.get('/ocrux/match/get-new-auto-matches')
+    matches.value = res.data || []
+  } catch (e) {
+    console.error('Failed to fetch auto-matches', e)
+  }
+  loading.value = false
+}
+
+onMounted(fetchAutoMatches)
+</script>
+
+<style scoped>
+.search-bar {
+  margin-bottom: 1.5rem;
+}
+.bx--search-input {
+  height: 40px;
+  width: 100%;
+  max-width: 400px;
 }
 </style>

@@ -1,331 +1,262 @@
 <template>
-  <div>
-    <div class="d-flex align-center mb-4">
-      <div>
-        <div class="text-h5 font-weight-medium">{{ $t('menu_home') }}</div>
-        <div class="text-subtitle-2 grey--text">Patient Registry</div>
-      </div>
-      <v-spacer></v-spacer>
+  <div class="content-area">
+    <div class="page-header">
+      <h1>{{ $t('menu_home') }}</h1>
+      <p>Search and manage patient records across all facilities</p>
     </div>
-    <v-card elevation="1" rounded="lg">
-      <v-card-title class="pa-4">
-        <v-row align="center" no-gutters>
-          <v-col cols="12" md="auto" class="d-flex flex-wrap align-center">
-            <template v-for="filter in filters">
-              <searchTerm
-                :label="filter.label"
-                :key="filter.searchparameter"
-                :expression="filter.searchparameter"
-                :binding="filter.binding"
-                @termChange="searchData"
-              />
-            </template>
-          </v-col>
-          <v-spacer></v-spacer>
-          <v-col cols="12" md="3">
-            <v-autocomplete
-              v-model="pos"
-              :items="$store.state.clients"
-              item-text="displayName"
-              item-value="id"
-              clearable
-              :label="$t('source')"
-              hide-details
-              outlined
-              dense
-              rounded
-              @click:clear="searchPOS"
-              @change="searchPOS"
-            />
-          </v-col>
-        </v-row>
-      </v-card-title>
-      <v-divider></v-divider>
-      <v-data-table
-        style="cursor: pointer"
-        :headers="headers"
-        :items="patients"
-        :options.sync="options"
-        :server-items-length="totalPatients"
-        :footer-props="{
-        'items-per-page-options': [5,10,20,50] ,
-        'items-per-page-text':this.$t('row_per_page')}"
-        :no-data-text="$t('no_data')"
-        :loading="loading"
-        @click:row="clickIt"
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Patients</div>
+        <div class="stat-value">{{ totalPatients }}</div>
+      </div>
+      <div class="stat-card" style="border-left-color: #da1e28">
+        <div class="stat-label">Action Required</div>
+        <div class="stat-value">{{ app.totalMatchIssues }}</div>
+      </div>
+      <div class="stat-card" style="border-left-color: #0043ce">
+        <div class="stat-label">Auto-Matches</div>
+        <div class="stat-value">{{ app.totalAutoMatches }}</div>
+      </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="search-bar">
+      <div class="search-input-wrapper">
+        <input
+          v-model="searchText"
+          class="bx--text-input bx--search-input"
+          placeholder="Search by name, identifier, or demographics..."
+          @keyup.enter="searchPatients"
+        />
+      </div>
+      <select v-model="selectedPOS" class="bx--select-input" @change="searchPatients">
+        <option value="">All Facilities</option>
+        <option v-for="client in app.clients" :key="client.id" :value="client.id">
+          {{ client.displayName }}
+        </option>
+      </select>
+      <button class="bx--btn bx--btn--primary" @click="searchPatients">Search</button>
+    </div>
+
+    <!-- Patient List -->
+    <div v-if="loading" class="empty-state">
+      <p>Loading patients...</p>
+    </div>
+
+    <div v-else-if="patients.length === 0" class="empty-state">
+      <h3>No patients found</h3>
+      <p>Try adjusting your search criteria or register a new patient</p>
+    </div>
+
+    <div v-else>
+      <div
+        v-for="patient in patients"
+        :key="patient.id"
+        class="patient-card"
+        @click="openPatient(patient.id)"
       >
-        <template v-slot:no-data>
-          <div class="text-center pa-8">
-            <v-icon size="64" color="grey lighten-1">mdi-account-search-outline</v-icon>
-            <div class="text-h6 grey--text mt-3">{{ $t('no_data') }}</div>
-            <div class="text-subtitle-2 grey--text text--lighten-1 mt-1">Try adjusting your search or filters</div>
-          </div>
-        </template>
-      </v-data-table>
-    </v-card>
+        <div class="patient-name">{{ patient.name }}</div>
+        <div class="patient-meta">
+          <span v-if="patient.gender">{{ patient.gender }}</span>
+          <span v-if="patient.birthDate">DOB: {{ patient.birthDate }}</span>
+          <span v-if="patient.phone">Phone: {{ patient.phone }}</span>
+          <span v-if="patient.source" class="patient-source">
+            <span class="bx--tag bx--tag--blue">{{ patient.source }}</span>
+          </span>
+        </div>
+        <div class="patient-ids">
+          <span
+            v-for="(id, idx) in patient.identifiers"
+            :key="idx"
+            class="bx--tag bx--tag--gray"
+          >
+            {{ id.label }}: {{ id.value }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button
+          class="bx--btn bx--btn--ghost bx--btn--sm"
+          :disabled="!prevPageUrl"
+          @click="loadPage(prevPageUrl)"
+        >Previous</button>
+        <span class="pagination-info">{{ patients.length }} patients shown</span>
+        <button
+          class="bx--btn bx--btn--ghost bx--btn--sm"
+          :disabled="!nextPageUrl"
+          @click="loadPage(nextPageUrl)"
+        >Next</button>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-import { generalMixin } from "@/mixins/generalMixin";
-import searchTerm from "../components/search-term"
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { useAppStore } from '@/stores/app'
 
-export const headersNames = {
-  givenName: 'Given Names(s)',
-  surname: 'Surname',
-  gender: 'Gender',
-  birth: 'Birth Date',
-  cruid :'CRUID'
+const router = useRouter()
+const app = useAppStore()
+
+const searchText = ref('')
+const selectedPOS = ref('')
+const patients = ref([])
+const totalPatients = ref(0)
+const loading = ref(false)
+const nextPageUrl = ref('')
+const prevPageUrl = ref('')
+
+function parsePatient(resource, clientTag) {
+  const name = resource.name && resource.name[0]
+  const given = name && name.given ? name.given.join(' ') : ''
+  const family = name && name.family ? name.family : ''
+  const fullName = `${given} ${family}`.trim() || 'Unknown'
+
+  const phone = resource.telecom &&
+    resource.telecom.find(t => t.system === 'phone')
+  const phoneValue = phone ? phone.value : ''
+
+  const identifiers = (resource.identifier || []).map(id => {
+    const displName = app.getSystemURIDisplayName(id.system)
+    return {
+      label: displName ? displName.name : (id.type && id.type.text) || 'ID',
+      value: id.value
+    }
+  })
+
+  const source = clientTag ? app.getClientDisplayName(clientTag) : ''
+
+  return {
+    id: resource.id,
+    name: fullName,
+    gender: resource.gender,
+    birthDate: resource.birthDate,
+    phone: phoneValue,
+    identifiers,
+    source
+  }
 }
 
-export default {
-  name: "Home",
-  mixins: [generalMixin],
-  data() {
-    return {
-      debug: "",
-      pos: "",
-      search_terms: [],
-      loading: false,
-      totalPatients: 0,
-      prevPage: -1,
-      link: [],
-      options: { itemsPerPage: 10, sortBy: ["family"] },
-      rowsPerPageItems: [5, 10, 20, 50],
-      headers: [],
-      filters: [],
-      patients: []
-    };
-  },
-  watch: {
-    options: {
-      handler() {
-        this.getData();
-      },
-      deep: true
+async function searchPatients() {
+  loading.value = true
+  try {
+    let url = `/ocrux/fhir/Patient?_count=20`
+    if (searchText.value) {
+      url += `&name=${encodeURIComponent(searchText.value)}`
     }
-  },
-  mounted() {
-    this.getData();
-  },
-  components: {
-    'searchTerm': searchTerm
-  },
-  methods: {
-    clickIt: function(client) {
-      this.$router.push({
-        name: "client",
-        params: { clientId: client.id },
-        query: { pos: this.pos }
-      });
-    },
-    searchPOS() {
-      if(this.pos) {
-        this.searchData('_tag', 'http://openclientregistry.org/fhir/clientid|' + this.pos)
-      } else if(this.pos === null) {
-        this.searchData('_tag', [])
-      }
-    },
-    searchData(expression, value) {
-      if(value === null || this.search_terms.indexOf(expression + '=' + encodeURIComponent(value)) !== -1 ) {
-        return
-      }
-      if(Array.isArray(value) && value.length === 0) {
-        for(let index in this.search_terms) {
-          if(this.search_terms[index].startsWith(expression + '=')) {
-            this.search_terms.splice(index, 1)
-          }
-        }
-      } else if(expression) {
-        this.search_terms.push(
-          expression + '=' + encodeURIComponent(value)
+    if (selectedPOS.value) {
+      url += `&_tag=http://openclientregistry.org/fhir/clientid|${selectedPOS.value}`
+    }
+    await loadUrl(url)
+  } catch (e) {
+    console.error('Search failed', e)
+  }
+  loading.value = false
+}
+
+async function loadPage(url) {
+  loading.value = true
+  await loadUrl(url)
+  loading.value = false
+}
+
+async function loadUrl(url) {
+  const res = await axios.get(url)
+  const bundle = res.data
+  totalPatients.value = bundle.total || 0
+  patients.value = []
+  nextPageUrl.value = ''
+  prevPageUrl.value = ''
+
+  if (bundle.link) {
+    const next = bundle.link.find(l => l.relation === 'next')
+    const prev = bundle.link.find(l => l.relation === 'previous')
+    if (next) nextPageUrl.value = next.url
+    if (prev) prevPageUrl.value = prev.url
+  }
+
+  if (bundle.entry) {
+    const goldenCode = '5c827da5-4858-4f3d-a50c-62ece001efea'
+    for (const entry of bundle.entry) {
+      const resource = entry.resource
+      if (!resource || resource.resourceType !== 'Patient') continue
+
+      // Skip golden records
+      const isGolden = resource.meta && resource.meta.tag &&
+        resource.meta.tag.find(t => t.code === goldenCode)
+      if (isGolden) continue
+
+      const clientTag = resource.meta && resource.meta.tag &&
+        resource.meta.tag.find(t =>
+          t.system === 'http://openclientregistry.org/fhir/clientid'
         )
-      }
-      this.getData(true);
-    },
-    getData(restart) {
-      this.loading = true;
-      let url = "";
-      if (restart) this.options.page = 1;
-      if (this.options.page > 1) {
-        if (this.options.page === this.prevPage - 1) {
-          url = this.link.find(link => link.relation === "previous").url;
-        } else if (this.options.page === this.prevPage + 1) {
-          url = this.link.find(link => link.relation === "next").url;
-        }
-        let query = url.split('?')[1]
-        url = "/ocrux/fhir?" + query
-      }
-      if (url === "") {
-        let count = this.options.itemsPerPage || 10;
-        let sort = "";
-        for (let idx in this.options.sortBy) {
-          if (sort) {
-            sort += ",";
-          }
-          if (this.options.sortDesc[idx]) {
-            sort += "-";
-          }
-          sort += this.options.sortBy[idx];
-        }
 
-        url =
-          "/ocrux/fhir/Patient?_count=" +
-          count +
-          "&_total=accurate&_tag:not=5c827da5-4858-4f3d-a50c-62ece001efea";
-        if (this.search_terms.length > 0) {
-          url += "&" + this.search_terms.join("&");
-        }
-        this.debug = url;
-      }
-      this.prevPage = this.options.page;
-
-      let columns_info = []
-      this.$http.get("/ocrux/fhir/Basic/patientdisplaypage").then(response => {
-        let extension_report = response.data.extension && response.data.extension.find((ext) => {
-          return ext.url === 'http://ihris.org/fhir/StructureDefinition/opencrReportDisplay'
-        })
-        this.headers = []
-        this.filters = []
-        if(extension_report) {
-          let display = extension_report.extension && extension_report.extension.filter((display) => {
-            return display.url === 'http://ihris.org/fhir/StructureDefinition/display'
-          })
-          if(display) {
-            for(let disp of display) {
-              let label = disp.extension && disp.extension.find((ext) => {
-                return ext.url === 'label'
-              })
-              let fhirpath = disp.extension && disp.extension.find((ext) => {
-                return ext.url === 'fhirpath'
-              })
-              let valueset = disp.extension && disp.extension.find((ext) => {
-                return ext.url === 'valueset'
-              })
-              let searchable = disp.extension && disp.extension.find((ext) => {
-                return ext.url === 'searchable'
-              })
-              let searchparameter = disp.extension && disp.extension.find((ext) => {
-                return ext.url === 'searchparameter'
-              })
-
-              let translatedHeader ;
-              if (label.valueString === headersNames.givenName) {
-                translatedHeader = this.$t('given_names');
-              }
-              if (label.valueString === headersNames.surname) {
-                translatedHeader = this.$t('surname');
-              }
-              if (label.valueString === headersNames.gender) {
-                translatedHeader = this.$t('gender');
-              }
-              if (label.valueString === headersNames.birth) {
-                translatedHeader = this.$t('birth_date');
-              }
-              if (label.valueString === headersNames.cruid) {
-                translatedHeader = label.valueString;
-              }
-
-              if(label && fhirpath) {
-                columns_info.push({
-                  text: label.valueString,
-                  fhirpath: fhirpath.valueString
-                })
-                this.headers.push({
-                  text: translatedHeader ? translatedHeader: label.valueString,
-                  value: label.valueString
-                })
-              }
-
-              if(searchable && searchparameter) {
-                let filter = {
-                  searchparameter: searchparameter.valueString,
-                  label: this.$t('search')+ "_" + (translatedHeader ? translatedHeader : label.valueString)
-                }
-                if(valueset && valueset.valueString) {
-                  filter.binding = valueset.valueString
-                }
-                this.filters.push(filter)
-              }
-            }
-            this.headers.push({
-              text: this.$t('source'),
-              value: "pos"
-            })
-          }
-        }
-
-        this.$http.get(url).then(response => {
-          this.patients = [];
-          if (response.data.total > 0) {
-            this.link = response.data.link;
-            for (let entry of response.data.entry) {
-              if (
-                !entry.resource.link ||
-                (entry.resource.link &&
-                  Array.isArray(entry.resource.link) &&
-                  entry.resource.link.length === 0) ||
-                (entry.resource.link && !Array.isArray(entry.resource.link))
-              ) {
-                continue;
-              }
-              let name =
-                entry.resource.name &&
-                (entry.resource.name.find(name => name.use === "official") || entry.resource.name[0]);
-              if (!name) {
-                name = {};
-              }
-              let nin = entry.resource.identifier.find(
-                id => id.system === process.env.VUE_APP_SYSTEM_NIN
-              );
-              if (!nin) {
-                nin = {};
-              }
-              let clientUserId;
-              if (entry.resource.meta && entry.resource.meta.tag) {
-                for (let tag of entry.resource.meta.tag) {
-                  if (
-                    tag.system === "http://openclientregistry.org/fhir/clientid"
-                  ) {
-                    clientUserId = tag.code;
-                  }
-                }
-              }
-              let systemName = this.getClientDisplayName(clientUserId);
-              let patient = {
-                id: entry.resource.id,
-                pos: systemName
-              }
-              for(let col of columns_info) {
-                let val = this.$fhirpath.evaluate(entry.resource, col.fhirpath)
-                if(Array.isArray(val)) {
-                  val = val.join(', ')
-                }
-                if(val.split('/').length === 2) {
-                  val = val.split('/')[1]
-                }
-                patient[col.text] = val
-              }
-              this.patients.push(patient)
-            }
-          }
-          this.totalPatients = response.data.total;
-          this.loading = false;
-        });
-      })
+      patients.value.push(parsePatient(resource, clientTag ? clientTag.code : ''))
     }
   }
-};
-</script>
-<style scoped>
-.v-data-table >>> tbody tr:hover {
-  background-color: #F5F8FA !important;
 }
-.v-data-table >>> thead th {
-  font-weight: 600 !important;
-  text-transform: uppercase;
-  font-size: 0.75rem !important;
-  letter-spacing: 0.05em;
-  color: #616161 !important;
+
+function openPatient(id) {
+  router.push({ name: 'client', params: { clientId: id } })
+}
+
+onMounted(() => {
+  searchPatients()
+})
+</script>
+
+<style scoped>
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-end;
+}
+
+.search-input-wrapper {
+  flex: 1;
+}
+
+.bx--search-input {
+  height: 40px;
+}
+
+.bx--select-input {
+  height: 40px;
+  min-width: 180px;
+  background: white;
+  border: 1px solid #8d8d8d;
+  padding: 0 2rem 0 1rem;
+  font-size: 0.875rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: #525252;
+}
+
+.patient-source {
+  margin-left: auto;
 }
 </style>
