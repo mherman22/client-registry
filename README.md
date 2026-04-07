@@ -231,20 +231,61 @@ This fork includes fixes and improvements over [intrahealth/client-registry](htt
 - **Remove hardcoded UUID** from Client.vue ([#159](https://github.com/intrahealth/client-registry/pull/159))
 
 ### Features
-- **Return FHIR Bundle** with auto and potential matches on POST /matches ([#137](https://github.com/intrahealth/client-registry/pull/137))
-- **Audit Log view** — full audit trail UI (OpenHIE CRF-8)
-- **Multi-birth indicator** display in patient detail (OpenHIE CRF-10)
-- **Name display fallback** — shows first name when `use='official'` is not set
-- **Identifier label fallback** — uses `identifier.type.text` when system URI has no config mapping
-- **Address display** in patient detail
-- **i18n** — English + French translations for audit log
+
+| Feature | Where to find it | How to test |
+|---------|-----------------|-------------|
+| **FHIR Bundle match response** | `POST /ocrux/match/matches` | Submit a Patient JSON to the matches endpoint — response is now a FHIR `searchset` Bundle with the submitted patient (`search.mode=include`) + auto matches (`score=0.9`) + potential matches (`score=0.2`) |
+| **Audit Log view** | CRUX UI → **Audit Log** tab | Create or update a patient, then navigate to Audit Log — you'll see timestamped events with type (Patient Create/Update), outcome (Success/Failure), agent, and clickable entity links |
+| **Multi-birth indicator** | CRUX UI → click a patient → **Demographics** section | Submit a patient with `multipleBirthBoolean: true` or `multipleBirthInteger: 2` — the detail page shows a "Multiple Birth" field with birth order |
+| **Name display fallback** | CRUX UI → **Home** table, **Patient Detail** | Submit a patient without `name.use='official'` (e.g., iSantePlus doesn't set it) — name still displays using the first available name entry |
+| **Identifier label fallback** | CRUX UI → click a patient → **Identifiers** section | Submit a patient with an identifier whose `system` URI isn't in the OpenCR config — the label falls back to `identifier.type.text` instead of showing a raw URI |
+| **Address display** | CRUX UI → click a patient → **Demographics** section | Submit a patient with `address[0].city`, `state`, `country` — shown in the demographics grid |
+| **i18n (English + French)** | CRUX UI → navbar → **EN/FR** toggle | Click the language toggle in the top-right corner to switch between English and French |
+| **Column sorting** | Every data table in CRUX UI | Click any column header — sorts ascending (↑), click again for descending (↓). Works on Home, Review, Auto-Matches, Audit Log, Users, CSV Reports |
+| **CSV Reports** | CRUX UI → **CSV Reports** tab | Upload patient data via the CSV endpoint — reports appear in the table with name, date, record count, and a View action |
 
 ### UI Modernization
-- Modern healthcare design with clean colors, proper spacing, rounded cards
-- Clean data tables with hover states and uppercase headers
-- Page headers with subtitles
-- Custom empty states with icons
-- Color-coded status chips for match types
+
+| Change | Where to see it |
+|--------|----------------|
+| Tailwind CSS design system | Every page — IBM Plex Sans font, Carbon gray palette, consistent spacing |
+| Dark navigation header | Top bar when logged in — dark background, white text, blue active indicator |
+| Data tables with sorting | Home, Review, Auto-Matches, Audit Log, Users, CSV Reports — sortable columns, hover states, zebra striping |
+| Separate search fields | Home page — Given Name, Surname, Gender, Identifier/CRUID, Point of Service, Date of Birth |
+| Empty states | Every table — when no data exists, table headers remain visible with an icon + helpful message inside the table body |
+| Loading spinners | Every page — animated spinner inside the table body while data is being fetched |
+| Color-coded tags | Match types (green=auto, red=conflict, yellow=potential), event types (green=create, blue=update), user roles (blue=admin, teal=deduplication) |
+| Breadcrumb navigation | Patient detail page — Home > Patient > [Name] |
+
+### Quick API Test
+
+Submit a test patient and verify the features:
+
+```bash
+# Submit a patient (replace localhost:3000 with your OpenCR URL)
+curl -k -X POST https://localhost:3000/fhir/Patient \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType": "Patient",
+    "name": [{"family": "Test", "given": ["John"]}],
+    "gender": "male",
+    "birthDate": "1990-01-15",
+    "multipleBirthInteger": 2,
+    "address": [{"city": "Port-au-Prince", "state": "Ouest", "country": "Haiti"}],
+    "telecom": [{"system": "phone", "value": "+509-1234-5678"}],
+    "identifier": [
+      {"system": "http://example.org/national-id", "value": "NAT-12345"},
+      {"value": "LOCAL-999", "type": {"text": "Local ID"}}
+    ]
+  }'
+
+# Then open the CRUX UI and verify:
+# 1. Home → patient appears in table with name, gender, DOB, phone
+# 2. Click patient → Demographics shows address, multi-birth indicator
+# 3. Identifiers show "National ID: NAT-12345" (from config) and "Local ID: LOCAL-999" (from type.text fallback)
+# 4. Audit Log → shows "Patient Create" event
+# 5. Toggle EN/FR → labels change language
+```
 
 ---
 
