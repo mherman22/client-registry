@@ -14,10 +14,8 @@ services:
       - ./config/decisionRules.json:/src/server/config/decisionRules.json
       - ./config/PatientRelationship.json:/src/resources/Relationships/PatientRelationship.json
     depends_on:
-      opencr-fhir:
-        condition: service_healthy
-      es:
-        condition: service_healthy
+      - opencr-fhir
+      - es
     ports:
       - "3000:3000"
     networks:
@@ -28,12 +26,6 @@ services:
     container_name: opencr-fhir
     image: hapiproject/hapi:v5.5.1
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/fhir/metadata || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 20
-      start_period: 60s
     ports:
       - "8080:8080"
     networks:
@@ -54,11 +46,6 @@ services:
       memlock:
         soft: -1
         hard: -1
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:9200/_cluster/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
     volumes:
       - es-data:/usr/share/elasticsearch/data
     ports:
