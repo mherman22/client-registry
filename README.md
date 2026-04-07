@@ -20,31 +20,6 @@ This is a maintained fork of [intrahealth/client-registry](https://github.com/in
 
 ---
 
-## Architecture
-
-```
-┌─────────────┐     ┌──────────┐     ┌──────────────┐     ┌───────────────┐
-│  EMR / Lab  │────▶│  OpenHIM │────▶│   OpenCR     │────▶│  HAPI FHIR    │
-│  (FHIR)     │     │ (optional│     │  (this repo) │     │  (patient     │
-│             │     │  mediator)│     │              │     │   store)      │
-└─────────────┘     └──────────┘     └──────┬───────┘     └───────────────┘
-                                            │
-                                     ┌──────▼───────┐
-                                     │ Elasticsearch │
-                                     │  (matching)   │
-                                     └──────────────┘
-```
-
-**Components:**
-| Component | Purpose | Default Port |
-|-----------|---------|-------------|
-| OpenCR Server | FHIR API + matching engine + CRUX UI | 3000 (HTTPS) |
-| HAPI FHIR | Patient resource storage | 8080 |
-| Elasticsearch | Patient indexing for matching queries | 9200 |
-| OpenHIM (optional) | Interoperability layer, routing, audit | 5001 |
-
----
-
 ## Quick Start
 
 ### Docker Compose (standalone)
@@ -68,16 +43,6 @@ docker pull ghcr.io/mherman22/client-registry:improved-opencr-fork
 ```
 
 The image expects a `config_docker.json` mounted at `/src/server/config/config_docker.json`. See [Configuration](#configuration) for details.
-
-### Integration with OpenELIS HIE
-
-For a full HIE setup with OpenELIS, OpenMRS, OpenHIM, and OpenCR:
-
-```bash
-git clone https://github.com/mherman22/OpenELIS-OpenCR-HIE-Setup.git
-cd OpenELIS-OpenCR-HIE-Setup
-docker compose -f openelis-opencr-hie-docker-compose.yml up -d
-```
 
 ---
 
