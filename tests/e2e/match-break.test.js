@@ -23,7 +23,7 @@ describe('Match Break and Unbreak', () => {
     const patientB = {
       ...patients.patientB,
       identifier: [
-        { system: 'http://clientregistry.org/openelis', value: uniqueId('break-B') },
+        { system: 'http://openelis-global.org/pat_nationalId', value: uniqueId('break-B') },
         { system: 'http://health.go.ug/cr/nationalid', value: sharedNatId },
       ],
     };

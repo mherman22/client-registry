@@ -21,7 +21,7 @@ describe('Patient Matching', () => {
     const patientB = {
       ...patients.patientB,
       identifier: [
-        { system: 'http://clientregistry.org/openelis', value: uniqueId('match-B') },
+        { system: 'http://openelis-global.org/pat_nationalId', value: uniqueId('match-B') },
         { system: 'http://health.go.ug/cr/nationalid', value: sharedNatId },
       ],
     };

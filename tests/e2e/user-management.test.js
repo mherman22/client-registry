@@ -71,7 +71,7 @@ describe('User Management - /ocrux/user/*', () => {
 
     const res = await api.post(
       '/ocrux/user/changepassword',
-      { userName: username, password: 'NewPass456!' },
+      { userName: username, password: 'OldPass123!', newpassword: 'NewPass456!' },
       { headers: headers(), validateStatus: () => true },
     );
 
