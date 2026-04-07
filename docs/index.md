@@ -1,9 +1,12 @@
 # Welcome!
 
+!!! note "Fork Notice"
+    This is a maintained fork of [intrahealth/client-registry](https://github.com/intrahealth/client-registry) with bug fixes, a modern Tailwind CSS UI, and OpenHIE compliance improvements. For fork-specific documentation (setup, features, dev workflow, testing), see the [**README**](https://github.com/mherman22/client-registry#readme). The docs below are from the upstream project and remain accurate for the server, API, and matching engine.
+
 *Thank you for taking an interest in the Open Client Registry (OpenCR)! This is a community project and meant for others to adopt to their use cases as they wish.*
 
 !!! tip
-    Regardless if you're just curious, an implementer, or a developer, please read the this page first and then the User Manual. We've kept them short.
+    Regardless if you're just curious, an implementer, or a developer, please read this page first and then the User Manual. We've kept them short.
 
 There are four manuals in the OpenCR technical documentation. Choose the one based on your needs:
 
