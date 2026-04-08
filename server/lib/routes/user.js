@@ -370,7 +370,7 @@ router.post("/authenticate", function (req, res, next) {
     }
     body = JSON.parse(body);
     const numMatches = body.total;
-    if (numMatches == 0) {
+    if (!numMatches || !body.entry || body.entry.length === 0) {
       return res.status(200).json({
         token: null,
         role: null,

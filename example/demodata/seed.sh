@@ -16,15 +16,17 @@ PATIENTS_FILE="${SCRIPT_DIR}/patients.json"
 echo "Seeding OpenCR at ${OPENCR_URL} with demo data..."
 echo ""
 
-# Wait for OpenCR to be ready
+# Wait for OpenCR to be ready (auth must return a valid token)
 echo "Checking if OpenCR is ready..."
 for i in $(seq 1 30); do
-  if curl -sf -k "${OPENCR_URL}/ocrux/user/authenticate?username=root@intrahealth.org&password=intrahealth" -X POST > /dev/null 2>&1; then
+  AUTH_RESPONSE=$(curl -sf -k "${OPENCR_URL}/ocrux/user/authenticate?username=root@intrahealth.org&password=intrahealth" -X POST 2>/dev/null)
+  TOKEN=$(echo "$AUTH_RESPONSE" | python3 -c "import sys,json; t=json.load(sys.stdin).get('token',''); print(t if t else '')" 2>/dev/null)
+  if [ -n "$TOKEN" ]; then
     echo "OpenCR is ready!"
     break
   fi
   if [ $i -eq 30 ]; then
-    echo "ERROR: OpenCR not responding after 5 minutes"
+    echo "ERROR: OpenCR not responding with valid auth after 5 minutes"
     exit 1
   fi
   echo "  Waiting... (${i}/30)"
@@ -32,11 +34,6 @@ for i in $(seq 1 30); do
 done
 
 echo ""
-
-# Get auth token
-TOKEN=$(curl -sf -k "${OPENCR_URL}/ocrux/user/authenticate?username=root@intrahealth.org&password=intrahealth" \
-  -X POST 2>/dev/null | \
-  python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null)
 
 if [ -z "$TOKEN" ]; then
   echo "WARNING: Could not get auth token, trying without auth..."
