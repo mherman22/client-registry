@@ -19,7 +19,7 @@ echo ""
 # Wait for OpenCR to be ready
 echo "Checking if OpenCR is ready..."
 for i in $(seq 1 30); do
-  if curl -sf -k "${OPENCR_URL}/ocrux/user/authenticate" -X POST -d "username=root@intrahealth.org&password=intrahealth" > /dev/null 2>&1; then
+  if curl -sf -k "${OPENCR_URL}/ocrux/user/authenticate?username=root@intrahealth.org&password=intrahealth" -X POST > /dev/null 2>&1; then
     echo "OpenCR is ready!"
     break
   fi
@@ -34,8 +34,8 @@ done
 echo ""
 
 # Get auth token
-TOKEN=$(curl -sf -k "${OPENCR_URL}/ocrux/user/authenticate" -X POST \
-  -d "username=root@intrahealth.org&password=intrahealth" 2>/dev/null | \
+TOKEN=$(curl -sf -k "${OPENCR_URL}/ocrux/user/authenticate?username=root@intrahealth.org&password=intrahealth" \
+  -X POST 2>/dev/null | \
   python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null)
 
 if [ -z "$TOKEN" ]; then
