@@ -49,6 +49,12 @@
             <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Phone</div>
             <div class="text-sm font-medium text-carbon-900">{{ phone }}</div>
           </div>
+          <div v-if="source">
+            <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Source</div>
+            <div class="text-sm font-medium text-carbon-900">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ source }}</span>
+            </div>
+          </div>
           <div v-if="patient.multipleBirthBoolean || patient.multipleBirthInteger">
             <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Multiple Birth</div>
             <div class="text-sm font-medium text-carbon-900">
@@ -57,6 +63,15 @@
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Golden Record (CRUID) -->
+      <div v-if="goldenRecord" class="bg-white border border-carbon-100 p-5 mb-5">
+        <h2 class="text-lg font-semibold text-carbon-900 mb-4">Golden Record</h2>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">CRUID</span>
+          <span class="text-sm font-mono text-carbon-700">{{ goldenRecord.id }}</span>
         </div>
       </div>
 
@@ -164,6 +179,7 @@ const app = useAppStore()
 const auth = useAuthStore()
 
 const patient = ref(null)
+const goldenRecord = ref(null)
 const linkedPatients = ref([])
 const loading = ref(false)
 const breaking = ref(false)
@@ -185,6 +201,12 @@ const phone = computed(() => {
   if (!patient.value || !patient.value.telecom) return ''
   const t = patient.value.telecom.find(t => t.system === 'phone')
   return t ? t.value : ''
+})
+
+const source = computed(() => {
+  if (!patient.value || !patient.value.meta || !patient.value.meta.tag) return ''
+  const clientTag = patient.value.meta.tag.find(t => t.system === 'http://openclientregistry.org/fhir/clientid')
+  return clientTag ? app.getClientDisplayName(clientTag.code) || clientTag.code : ''
 })
 
 const identifiers = computed(() => {
@@ -227,7 +249,7 @@ function parseLinked(resource) {
 async function fetchPatient() {
   loading.value = true
   try {
-    const res = await axios.get(`/ocrux/fhir/Patient/${route.params.clientId}?_include=Patient:link`)
+    const res = await axios.get(`/ocrux/fhir/Patient?_id=${route.params.clientId}&_include=Patient:link`)
     const bundle = res.data
     if (!bundle.entry || bundle.entry.length === 0) { loading.value = false; return }
 
@@ -235,11 +257,14 @@ async function fetchPatient() {
     const linked = []
     for (const entry of bundle.entry) {
       const r = entry.resource
+      const isGolden = r.meta && r.meta.tag && r.meta.tag.find(t => t.code === goldenCode)
       if (r.id === route.params.clientId) {
         patient.value = r
+      } else if (isGolden) {
+        // Golden record — fetch its linked patients too
+        goldenRecord.value = r
       } else {
-        const isGolden = r.meta && r.meta.tag && r.meta.tag.find(t => t.code === goldenCode)
-        if (!isGolden) linked.push(parseLinked(r))
+        linked.push(parseLinked(r))
       }
     }
     linkedPatients.value = linked
