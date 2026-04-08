@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:full": "cd ../example && OPENCR_PORT=${OPENCR_PORT:-3002} docker compose up -d && echo 'Waiting for backend...' && until curl -sf -k https://localhost:${OPENCR_PORT:-3002}/crux/ > /dev/null 2>&1; do sleep 15; echo 'Still waiting...'; done && echo 'Backend ready!' && if [ \"$DEMO\" = \"true\" ]; then echo 'Loading demo data...' && bash demodata/seed.sh https://localhost:${OPENCR_PORT:-3002}; fi && cd ../ui && OPENCR_BACKEND=https://localhost:${OPENCR_PORT:-3002} vite",
-    "dev:stop": "cd ../example && docker compose down",
+    "dev:full": "cd ../example && OPENCR_PORT=${OPENCR_PORT:-3002} docker compose -f docker-compose.dev.yml up -d && echo 'Waiting for backend...' && until curl -sf -k https://localhost:${OPENCR_PORT:-3002}/crux/ > /dev/null 2>&1; do sleep 15; echo 'Still waiting...'; done && echo 'Backend ready!' && if [ \"$DEMO\" = \"true\" ]; then echo 'Loading demo data...' && bash demodata/seed.sh https://localhost:${OPENCR_PORT:-3002}; fi && cd ../ui && OPENCR_BACKEND=https://localhost:${OPENCR_PORT:-3002} vite",
+    "dev:stop": "cd ../example && docker compose -f docker-compose.dev.yml down",
     "test": "cd ../tests && npm install && OPENCR_URL=https://localhost:${OPENCR_PORT:-3002} npx jest --runInBand",
     "test:e2e": "cd ../tests && npm install && OPENCR_URL=https://localhost:${OPENCR_PORT:-3002} npx jest --runInBand --testPathPattern=e2e",
     "build": "vite build",
