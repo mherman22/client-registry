@@ -3,6 +3,9 @@ services:
   # OpenCR Server — Client Registry API + CRUX UI
   opencr:
     container_name: opencr
+    build:
+      context: ..
+      dockerfile: Dockerfile.ci
     image: ghcr.io/mherman22/client-registry:improved-opencr-fork
     restart: unless-stopped
     environment:
