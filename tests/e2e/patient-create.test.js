@@ -29,9 +29,11 @@ describe('Patient Create - POST /fhir/Patient', () => {
     expect(res.headers.location).toBeDefined();
   });
 
-  test('accepts a patient with missing identifier gracefully', async () => {
+  test('rejects a patient with missing identifier with 400', async () => {
+    const patientId = uniqueId('no-id');
     const patient = {
       resourceType: 'Patient',
+      id: patientId,
       active: true,
       name: [{ use: 'official', family: 'NoId', given: ['Test'] }],
       gender: 'male',
@@ -46,11 +48,23 @@ describe('Patient Create - POST /fhir/Patient', () => {
         ],
       },
     };
+    const bundle = {
+      resourceType: 'Bundle',
+      type: 'transaction',
+      entry: [{ resource: patient, request: { method: 'PUT', url: `Patient/${patientId}` } }],
+    };
 
-    const res = await submitPatient(patient, token);
+    const res = await api.post('/fhir/', bundle, {
+      headers: {
+        'Content-Type': 'application/fhir+json',
+        Authorization: `Bearer ${token}`,
+        'x-openhim-clientid': 'test',
+      },
+      validateStatus: () => true,
+    });
 
-    // OpenCR should still accept the patient even without identifiers
-    expect([200, 201]).toContain(res.status);
+    // Server requires a registered internal identifier system; rejects patients without one
+    expect([400, 422]).toContain(res.status);
   });
 
   test('returns a location header pointing to the created patient', async () => {

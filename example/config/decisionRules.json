@@ -13,7 +13,7 @@
       "fields": {
         "nationalId": {
           "algorithm": "exact",
-          "fhirpath": "identifier.where(system='http://clientregistry.org/nationalid').value",
+          "fhirpath": "identifier.where(system='http://health.go.ug/cr/nationalid').value",
           "espath": "nationalId",
           "null_handling": "conservative",
           "null_handling_both": "conservative"

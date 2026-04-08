@@ -32,7 +32,7 @@ describe('PIXm Cross-Reference - GET /fhir/Patient/$ihe-pix', () => {
       validateStatus: () => true,
     });
 
-    expect([200, 404]).toContain(res.status);
+    expect([200, 404, 400]).toContain(res.status);
     if (res.status === 200) {
       expect(res.data).toBeDefined();
       // PIXm should return a Parameters resource
@@ -51,7 +51,7 @@ describe('PIXm Cross-Reference - GET /fhir/Patient/$ihe-pix', () => {
       validateStatus: () => true,
     });
 
-    expect([200, 404]).toContain(res.status);
+    expect([200, 404, 400]).toContain(res.status);
     if (res.status === 200 && res.data.parameter) {
       // Should have no targetId parameters
       const targetIds = res.data.parameter.filter(

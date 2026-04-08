@@ -219,20 +219,46 @@ router.post('/', (req, res) => {
         entry: patients
       };
       let clientID;
-      if(req.connection && typeof req.connection.getPeerCertificate === "function") {
-        const cert = req.connection.getPeerCertificate();
-        clientID = cert.subject.CN;
-      } else if(req.headers['x-openhim-clientid']) {
+      if(req.headers['x-openhim-clientid']) {
         clientID = req.headers['x-openhim-clientid'];
+      } else if(req.connection && typeof req.connection.getPeerCertificate === "function") {
+        const cert = req.connection.getPeerCertificate();
+        if(cert && cert.subject && cert.subject.CN) {
+          clientID = cert.subject.CN;
+        }
       }
-      // if (config.get('mediator:register')) {
-      //   clientID = req.headers['x-openhim-clientid'];
-      // } else {
-      //   const cert = req.connection.getPeerCertificate();
-      //   clientID = cert.subject.CN;
-      // }
+      if(!clientID) {
+        return callback(null, {
+          code: 400,
+          responseBundle: {
+            resourceType: "OperationOutcome",
+            issue: [{
+              severity: "error",
+              code: "required",
+              diagnostics: "Client ID is required"
+            }]
+          },
+          responseHeaders: { patientID: [], CRUID: [] },
+          operationSummary: []
+        });
+      }
       matchMixin.addPatient(clientID, patientsBundle, (err, responseBundle, responseHeaders, operationSummary) => {
         if (err) {
+          if (!responseBundle || !responseBundle.entry || responseBundle.entry.length === 0) {
+            return callback(null, {
+              code: 400,
+              responseBundle: {
+                resourceType: "OperationOutcome",
+                issue: [{
+                  severity: "error",
+                  code: "required",
+                  diagnostics: "No valid patients could be processed. Ensure patient identifiers use a registered system URI."
+                }]
+              },
+              responseHeaders: responseHeaders || { patientID: [], CRUID: [] },
+              operationSummary: operationSummary || []
+            });
+          }
           return callback(null, {code: 500, err, responseBundle, responseHeaders, operationSummary});
         }
         return callback(null, {code: 200, err, responseBundle, responseHeaders, operationSummary});
@@ -248,16 +274,19 @@ router.post('/', (req, res) => {
     if(!code) {
       code = 500;
     }
+    if(results.patients.responseBundle.resourceType === "OperationOutcome") {
+      return res.status(code).json(results.patients.responseBundle);
+    }
     let filteredResponseBundle = [];
     for(let entry of results.patients.responseBundle.entry) {
       let exists = filteredResponseBundle.findIndex((fil) => {
-        return fil.response.location.startsWith(entry.response.location.split('/_history')[0]);
+        return fil && fil.response && entry && entry.response && entry.response.location && fil.response.location.startsWith(entry.response.location.split('/_history')[0]);
       });
       if(exists === -1) {
         filteredResponseBundle.push(entry);
       } else {
         let replaceIndex = filteredResponseBundle.findIndex((fil) => {
-          return parseInt(fil.response.etag) > parseInt(entry.response.etag) && fil.response.location.startsWith(entry.response.location.split('/_history')[0]);
+          return fil && fil.response && entry && entry.response && entry.response.location && parseInt(fil.response.etag) > parseInt(entry.response.etag) && fil.response.location.startsWith(entry.response.location.split('/_history')[0]);
         });
         if(replaceIndex !== -1) {
           filteredResponseBundle.splice(replaceIndex, 1);
@@ -265,8 +294,8 @@ router.post('/', (req, res) => {
         }
       }
     }
-    res.setHeader('Location', JSON.stringify(results.patients.responseHeaders.patientID));
-    res.setHeader('LocationCRUID', JSON.stringify(results.patients.responseHeaders.CRUID));
+    res.setHeader('Location', results.patients.responseHeaders.patientID[0]);
+    res.setHeader('LocationCRUID', results.patients.responseHeaders.CRUID[0]);
     let type = resource.type + "-response"
     if(!resource.type) {
       type = "batch-response"
@@ -347,11 +376,13 @@ function saveResource(req, res) {
     };
 
     let clientID;
-    if(req.connection && typeof req.connection.getPeerCertificate === "function") {
-      const cert = req.connection.getPeerCertificate();
-      clientID = cert.subject.CN;
-    } else if(req.headers['x-openhim-clientid']) {
+    if(req.headers['x-openhim-clientid']) {
       clientID = req.headers['x-openhim-clientid'];
+    } else if(req.connection && typeof req.connection.getPeerCertificate === "function") {
+      const cert = req.connection.getPeerCertificate();
+      if(cert && cert.subject) {
+        clientID = cert.subject.CN;
+      }
     }
 
     if(!clientID) {
@@ -367,12 +398,6 @@ function saveResource(req, res) {
         }
       });
     }
-    // if (config.get('mediator:register')) {
-    //   clientID = req.headers['x-openhim-clientid'];
-    // } else {
-    //   const cert = req.connection.getPeerCertificate();
-    //   clientID = cert.subject.CN;
-    // }
     matchMixin.addPatient(clientID, patientsBundle, (error, responseBundle, responseHeaders, operationSummary) => {
       const auditBundle = matchMixin.createAddPatientAudEvent(operationSummary, req);
       fhirWrapper.saveResource({

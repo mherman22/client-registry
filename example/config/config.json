@@ -5,7 +5,8 @@
   },
   "app": {
     "port": 3000,
-    "installed": false
+    "installed": false,
+    "trustOpenHIMClientHeader": true
   },
   "cronJobs": {
     "patientReprocessing": "0 21 * * *"
@@ -59,7 +60,7 @@
     },
     "nationalid": {
       "uri": [
-        "http://clientregistry.org/nationalid"
+        "http://health.go.ug/cr/nationalid"
       ],
       "displayName": "National ID"
     },

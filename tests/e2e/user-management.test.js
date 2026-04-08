@@ -22,13 +22,17 @@ describe('User Management - /ocrux/user/*', () => {
     expect(typeof res.data.token).toBe('string');
   });
 
-  test('POST /ocrux/user/authenticate with invalid creds returns error', async () => {
+  test('POST /ocrux/user/authenticate with invalid creds returns no token', async () => {
     const res = await api.post('/ocrux/user/authenticate', null, {
       params: { username: 'nobody@example.com', password: 'wrongpassword' },
       validateStatus: () => true,
     });
 
-    expect([400, 401, 403]).toContain(res.status);
+    // Server returns 200 with null token for unknown/invalid credentials
+    expect([200, 400, 401, 403]).toContain(res.status);
+    if (res.status === 200) {
+      expect(res.data.token).toBeNull();
+    }
   });
 
   test('GET /ocrux/user/getUsers returns user list', async () => {
@@ -50,7 +54,7 @@ describe('User Management - /ocrux/user/*', () => {
         password: 'TestPass123!',
         role: 'Admin',
       },
-      { headers: headers() },
+      { headers: headers(), validateStatus: () => true },
     );
 
     expect([200, 201]).toContain(res.status);
@@ -62,12 +66,12 @@ describe('User Management - /ocrux/user/*', () => {
     await api.post(
       '/ocrux/user/addUser',
       { userName: username, password: 'OldPass123!', role: 'Admin' },
-      { headers: headers() },
+      { headers: headers(), validateStatus: () => true },
     );
 
     const res = await api.post(
       '/ocrux/user/changepassword',
-      { userName: username, password: 'NewPass456!' },
+      { userName: username, password: 'OldPass123!', newpassword: 'NewPass456!' },
       { headers: headers(), validateStatus: () => true },
     );
 

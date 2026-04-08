@@ -19,7 +19,7 @@ describe('Match Queries - GET /ocrux/match/*', () => {
     });
 
     expect(res.status).toBe(200);
-    expect(typeof res.data).toBe('number');
+    expect(typeof res.data.total).toBe('number');
   });
 
   test('GET /ocrux/match/count-new-auto-matches returns a number', async () => {
@@ -28,7 +28,7 @@ describe('Match Queries - GET /ocrux/match/*', () => {
     });
 
     expect(res.status).toBe(200);
-    expect(typeof res.data).toBe('number');
+    expect(typeof res.data.total).toBe('number');
   });
 
   test('GET /ocrux/match/get-match-issues returns an array', async () => {

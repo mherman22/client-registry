@@ -66,6 +66,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Build OpenCR Docker image from current code
+        run: docker build -f Dockerfile.ci -t ghcr.io/mherman22/client-registry:improved-opencr-fork .
+
       - name: Start OpenCR stack
         working-directory: example
         run: |
@@ -78,6 +81,15 @@ jobs:
             fi
             echo "  Still waiting... ($i/40)"
             sleep 15
+          done
+          echo "Waiting for Elasticsearch index..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9200/patients/_mapping > /dev/null 2>&1; then
+              echo "ES index ready!"
+              break
+            fi
+            echo "  ES index not ready yet... ($i/30)"
+            sleep 5
           done
 
       - name: Verify services are running

@@ -98,13 +98,21 @@ function appRoutes() {
     if(authorized) {
       return next();
     }
+    // When configured to trust the OpenHIM proxy, accept x-openhim-clientid as client identity
+    if(config.get('app:trustOpenHIMClientHeader') && req.headers['x-openhim-clientid']) {
+      return next();
+    }
+    if(!req.connection || typeof req.connection.getPeerCertificate !== "function") {
+      logger.error('Client has submitted request without certificate');
+      return res.status(401).send(`Sorry, you need to provide a client certificate to continue.`);
+    }
     const cert = req.connection.getPeerCertificate();
-    if (req.client.authorized) {
-      if (!cert.subject.CN) {
+    if (req.client && req.client.authorized) {
+      if (!cert || !cert.subject || !cert.subject.CN) {
         logger.error(`Client has submitted a valid certificate but missing Common Name (CN)`);
         return res.status(400).send(`You have submitted a valid certificate but missing Common Name (CN)`);
       }
-    } else if (cert.subject) {
+    } else if (cert && cert.subject) {
       logger.error(`Client ${cert.subject.CN} has submitted an invalid certificate`);
       return res.status(403).send(`Sorry, you have submitted an invalid certificate, make sure that your certificate is signed by client registry`);
     } else {
