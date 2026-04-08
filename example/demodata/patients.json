@@ -1,126 +1,143 @@
 [
   {
+    "__scenario": "SCENARIO 1: Auto-match via National ID — Jean Baptiste registered at HUEH (OpenMRS)",
     "resourceType": "Patient",
     "identifier": [
       { "system": "http://clientregistry.org/openmrs", "value": "P-1001", "type": { "text": "Internal ID" } },
       { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88001", "type": { "text": "National ID" } }
     ],
-    "name": [{ "family": "Baptiste", "given": ["Jean", "Pierre"] }],
+    "name": [{ "use": "official", "family": "Baptiste", "given": ["Jean", "Pierre"] }],
     "gender": "male",
     "birthDate": "1985-03-15",
     "address": [{ "city": "Port-au-Prince", "state": "Ouest", "country": "Haiti" }],
     "telecom": [{ "system": "phone", "value": "+509-3456-7890" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openmrs", "display": "OpenMRS" }] }
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "hueh", "display": "HUEH" }] }
   },
   {
+    "__scenario": "SCENARIO 1: Same person — lab visit at OpenELIS with same National ID NAT-88001. Different internal ID, slightly different name (abbreviation). Should AUTO-MATCH to patient above via Rule 1 (deterministic National ID exact match).",
+    "resourceType": "Patient",
+    "identifier": [
+      { "system": "http://openelis-global.org/pat_nationalId", "value": "LAB-2001", "type": { "text": "Lab ID" } },
+      { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88001", "type": { "text": "National ID" } }
+    ],
+    "name": [{ "use": "official", "family": "Baptiste", "given": ["Jean", "P."] }],
+    "gender": "male",
+    "birthDate": "1985-03-15",
+    "address": [{ "city": "Port-au-Prince", "state": "Ouest", "country": "Haiti" }],
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openelis", "display": "OpenELIS" }] }
+  },
+  {
+    "__scenario": "SCENARIO 2: Auto-match via demographics — Marie Dupont registered at La Paix",
     "resourceType": "Patient",
     "identifier": [
       { "system": "http://clientregistry.org/openmrs", "value": "P-1002", "type": { "text": "Internal ID" } },
       { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88002", "type": { "text": "National ID" } }
     ],
-    "name": [{ "family": "Dupont", "given": ["Marie", "Claire"] }],
+    "name": [{ "use": "official", "family": "Dupont", "given": ["Marie", "Claire"] }],
     "gender": "female",
     "birthDate": "1990-07-22",
     "address": [{ "city": "Cap-Haitien", "state": "Nord", "country": "Haiti" }],
     "telecom": [{ "system": "phone", "value": "+509-2345-6789" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openmrs", "display": "OpenMRS" }] }
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "lapaix", "display": "La Paix" }] }
   },
   {
+    "__scenario": "SCENARIO 2: Same person at OFATMA — same name, gender, DOB. No National ID this time. Should AUTO-MATCH via Rule 2 (all 4 demographic fields match, score ~4 >= autoMatchThreshold 4).",
     "resourceType": "Patient",
     "identifier": [
-      { "system": "http://clientregistry.org/openmrs", "value": "P-1003", "type": { "text": "Internal ID" } },
-      { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88003", "type": { "text": "National ID" } }
+      { "system": "http://clientregistry.org/openmrs", "value": "P-3001", "type": { "text": "Internal ID" } }
     ],
-    "name": [{ "family": "Joseph", "given": ["Emmanuel"] }],
+    "name": [{ "use": "official", "family": "Dupont", "given": ["Marie", "Claire"] }],
+    "gender": "female",
+    "birthDate": "1990-07-22",
+    "address": [{ "city": "Gonaives", "state": "Artibonite", "country": "Haiti" }],
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "ofatma", "display": "OFATMA" }] }
+  },
+  {
+    "__scenario": "SCENARIO 3: POTENTIAL match — similar but not identical demographics. Same family name 'Baptiste', same gender, same DOB, but given name is 'Jean-Louis' not 'Jean Pierre'. Jaro-Winkler('Jean-Louis', 'Jean Pierre') ~0.82 > 0.8 threshold so it passes, but only 3-4 fields match depending on score rounding. Should trigger POTENTIAL MATCH for human review.",
+    "resourceType": "Patient",
+    "identifier": [
+      { "system": "http://clientregistry.org/openmrs", "value": "P-1003", "type": { "text": "Internal ID" } }
+    ],
+    "name": [{ "use": "official", "family": "Baptiste", "given": ["Jean-Louis"] }],
+    "gender": "male",
+    "birthDate": "1985-03-15",
+    "address": [{ "city": "Jeremie", "state": "Grand'Anse", "country": "Haiti" }],
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "pestel", "display": "Pestel" }] }
+  },
+  {
+    "__scenario": "SCENARIO 4: NO match — unique person. Emmanuel Joseph at Foyer Saint Camille. Different name, gender, DOB from everyone else. Gets own golden record.",
+    "resourceType": "Patient",
+    "identifier": [
+      { "system": "http://clientregistry.org/openmrs", "value": "P-1004", "type": { "text": "Internal ID" } },
+      { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88004", "type": { "text": "National ID" } }
+    ],
+    "name": [{ "use": "official", "family": "Joseph", "given": ["Emmanuel"] }],
     "gender": "male",
     "birthDate": "1978-11-30",
     "multipleBirthInteger": 2,
     "address": [{ "city": "Gonaives", "state": "Artibonite", "country": "Haiti" }],
     "telecom": [{ "system": "phone", "value": "+509-4567-8901" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openmrs", "display": "OpenMRS" }] }
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "foyer-saint-camille", "display": "Foyer Saint Camille" }] }
   },
   {
+    "__scenario": "SCENARIO 5: Roaming care — Rose Celestin visits Gressier MS and then Bethel FDN. Both use the iSantePlus internal ID system.",
     "resourceType": "Patient",
     "identifier": [
-      { "system": "http://clientregistry.org/openmrs", "value": "P-1004", "type": { "text": "Internal ID" } }
+      { "system": "http://isanteplus.org/openmrs/fhir2/3-isanteplus-id", "value": "ISP-5001", "type": { "text": "iSantePlus ID" } },
+      { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88005", "type": { "text": "National ID" } },
+      { "system": "http://isanteplus.org/openmrs/fhir2/6-code-st", "value": "ART-7001", "type": { "text": "ART Number" } }
     ],
-    "name": [{ "family": "Celestin", "given": ["Rose", "Marie"] }],
+    "name": [{ "use": "official", "family": "Celestin", "given": ["Rose", "Marie"] }],
     "gender": "female",
     "birthDate": "1995-01-08",
     "address": [{ "city": "Les Cayes", "state": "Sud", "country": "Haiti" }],
     "telecom": [{ "system": "phone", "value": "+509-5678-9012" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openmrs", "display": "OpenMRS" }] }
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "gressierms", "display": "Gressier MS" }] }
   },
   {
+    "__scenario": "SCENARIO 5: Same person at different facility — same National ID triggers auto-match via Rule 1. Different iSantePlus internal ID (different facility).",
     "resourceType": "Patient",
     "identifier": [
-      { "system": "http://clientregistry.org/openmrs", "value": "P-1005", "type": { "text": "Internal ID" } },
+      { "system": "http://isanteplus.org/openmrs/fhir2/3-isanteplus-id", "value": "ISP-6001", "type": { "text": "iSantePlus ID" } },
       { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88005", "type": { "text": "National ID" } }
     ],
-    "name": [{ "family": "Pierre", "given": ["Jacques"] }],
-    "gender": "male",
-    "birthDate": "1982-06-14",
-    "address": [{ "city": "Jeremie", "state": "Grand'Anse", "country": "Haiti" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openmrs", "display": "OpenMRS" }] }
-  },
-  {
-    "resourceType": "Patient",
-    "identifier": [
-      { "system": "http://openelis-global.org/pat_nationalId", "value": "P-2001", "type": { "text": "Lab ID" } },
-      { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88001", "type": { "text": "National ID" } }
-    ],
-    "name": [{ "family": "Baptiste", "given": ["Jean", "P."] }],
-    "gender": "male",
-    "birthDate": "1985-03-15",
-    "address": [{ "city": "Port-au-Prince", "state": "Ouest", "country": "Haiti" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openelis", "display": "OpenELIS" }] }
-  },
-  {
-    "resourceType": "Patient",
-    "identifier": [
-      { "system": "http://openelis-global.org/pat_nationalId", "value": "P-2002", "type": { "text": "Lab ID" } },
-      { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88002", "type": { "text": "National ID" } }
-    ],
-    "name": [{ "family": "Dupont", "given": ["Marie"] }],
+    "name": [{ "use": "official", "family": "Celestin", "given": ["Rose"] }],
     "gender": "female",
-    "birthDate": "1990-07-22",
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openelis", "display": "OpenELIS" }] }
+    "birthDate": "1995-01-08",
+    "address": [{ "city": "Gressier", "state": "Ouest", "country": "Haiti" }],
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "bethel-fdn", "display": "Bethel FDN" }] }
   },
   {
+    "__scenario": "SCENARIO 6: Unique person with multiple identifiers — demonstrates multi-ID display",
     "resourceType": "Patient",
     "identifier": [
-      { "system": "http://clientregistry.org/openmrs", "value": "P-1006", "type": { "text": "Internal ID" } }
+      { "system": "http://clientregistry.org/openmrs", "value": "P-1006", "type": { "text": "Internal ID" } },
+      { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88006", "type": { "text": "National ID" } },
+      { "system": "http://isanteplus.org/openmrs/fhir2/9-code-pc", "value": "PC-4001", "type": { "text": "Code PC" } }
     ],
-    "name": [{ "family": "Toussaint", "given": ["Louverture"] }],
+    "name": [{ "use": "official", "family": "Toussaint", "given": ["Louverture"] }],
     "gender": "male",
     "birthDate": "2000-12-25",
     "address": [{ "city": "Hinche", "state": "Centre", "country": "Haiti" }],
-    "telecom": [{ "system": "phone", "value": "+509-6789-0123" }, { "system": "email", "value": "lt@example.com" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openmrs", "display": "OpenMRS" }] }
+    "telecom": [
+      { "system": "phone", "value": "+509-6789-0123" },
+      { "system": "email", "value": "lt@example.com" }
+    ],
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "hueh", "display": "HUEH" }] }
   },
   {
+    "__scenario": "SCENARIO 7: Unique person — multiple birth indicator, demonstrates CRF-10 display",
     "resourceType": "Patient",
     "identifier": [
       { "system": "http://clientregistry.org/openmrs", "value": "P-1007", "type": { "text": "Internal ID" } },
       { "system": "http://health.go.ug/cr/nationalid", "value": "NAT-88007", "type": { "text": "National ID" } }
     ],
-    "name": [{ "family": "Aristide", "given": ["Sophia", "Nadine"] }],
+    "name": [{ "use": "official", "family": "Aristide", "given": ["Sophia", "Nadine"] }],
     "gender": "female",
     "birthDate": "1988-09-03",
     "multipleBirthBoolean": true,
     "address": [{ "city": "Jacmel", "state": "Sud-Est", "country": "Haiti" }],
     "telecom": [{ "system": "phone", "value": "+509-7890-1234" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openmrs", "display": "OpenMRS" }] }
-  },
-  {
-    "resourceType": "Patient",
-    "identifier": [
-      { "system": "http://clientregistry.org/openmrs", "value": "P-1008", "type": { "text": "Internal ID" } }
-    ],
-    "name": [{ "family": "Desrosiers", "given": ["Patrick"] }],
-    "gender": "male",
-    "birthDate": "1972-04-18",
-    "address": [{ "city": "Mirebalais", "state": "Centre", "country": "Haiti" }],
-    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "openmrs", "display": "OpenMRS" }] }
+    "meta": { "tag": [{ "system": "http://openclientregistry.org/fhir/clientid", "code": "lapaix", "display": "La Paix" }] }
   }
 ]

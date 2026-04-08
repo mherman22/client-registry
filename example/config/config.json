@@ -41,8 +41,17 @@
     "reportRelationship": "patientreport"
   },
   "clients": [
+    { "id": "hueh", "displayName": "HUEH" },
+    { "id": "lapaix", "displayName": "La Paix" },
+    { "id": "ofatma", "displayName": "OFATMA" },
+    { "id": "foyer-saint-camille", "displayName": "Foyer Saint Camille" },
+    { "id": "gressierms", "displayName": "Gressier MS" },
+    { "id": "pestel", "displayName": "Pestel" },
+    { "id": "bethel-fdn", "displayName": "Bethel FDN" },
     { "id": "openmrs", "displayName": "OpenMRS" },
     { "id": "openelis", "displayName": "OpenELIS" },
+    { "id": "openshr", "displayName": "Shared Health Record" },
+    { "id": "shr-pipeline", "displayName": "SHR Pipeline" },
     { "id": "test", "displayName": "Test" },
     { "id": "cr", "displayName": "Client Registry" }
   ],
@@ -54,15 +63,39 @@
     "internalid": {
       "uri": [
         "http://clientregistry.org/openmrs",
-        "http://openelis-global.org/pat_nationalId"
+        "http://openelis-global.org/pat_nationalId",
+        "http://isanteplus.org/openmrs/fhir2/3-isanteplus-id",
+        "http://isanteplus.sedish-haiti.org/openmrs/fhir2/3-isanteplus-id"
       ],
       "displayName": "Internal ID"
     },
     "nationalid": {
       "uri": [
-        "http://health.go.ug/cr/nationalid"
+        "http://health.go.ug/cr/nationalid",
+        "http://isanteplus.org/openmrs/fhir2/5-code-national",
+        "http://isanteplus.sedish-haiti.org/openmrs/fhir2/5-code-national"
       ],
       "displayName": "National ID"
+    },
+    "artnumber": {
+      "uri": [
+        "http://isanteplus.org/openmrs/fhir2/6-code-st",
+        "http://isanteplus.sedish-haiti.org/openmrs/fhir2/6-code-st"
+      ],
+      "displayName": "ART Number"
+    },
+    "codepc": {
+      "uri": [
+        "http://isanteplus.org/openmrs/fhir2/9-code-pc",
+        "http://isanteplus.sedish-haiti.org/openmrs/fhir2/9-code-pc"
+      ],
+      "displayName": "Code PC"
+    },
+    "biometricnational": {
+      "uri": [
+        "http://isanteplus.org/openmrs/fhir2/6-biometrics-national-reference-code"
+      ],
+      "displayName": "Biometrics National Reference Code"
     },
     "brokenMatch": {
       "uri": "http://clientregistry.org/brokenMatch"

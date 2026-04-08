@@ -2,12 +2,21 @@
   "__comments": {
     "threshold": {
       "jaro-winkler": "0 = no match, 1 = exact match",
-      "exact": "binary match"
+      "exact": "binary — scores 1 if identical, 0 otherwise"
+    },
+    "scoring": {
+      "deterministic": "each matching field adds its weight (default 1) to the score",
+      "probabilistic": "Fellegi-Sunter model — score is a weighted sum of field similarities"
+    },
+    "thresholds": {
+      "potentialMatchThreshold": "minimum score for ES to return the document (min_score)",
+      "autoMatchThreshold": "score >= this → auto-match (linked automatically)",
+      "between": "potentialMatchThreshold <= score < autoMatchThreshold → potential match (needs human review)"
     }
   },
   "rules": [
     {
-      "__description": "Rule 1: National ID exact match",
+      "__description": "Rule 1: National ID exact match — deterministic auto-match",
       "matchingType": "deterministic",
       "rule": "1",
       "fields": {
@@ -19,11 +28,11 @@
           "null_handling_both": "conservative"
         }
       },
-      "potentialMatchThreshold": 2,
-      "autoMatchThreshold": 2
+      "potentialMatchThreshold": 1,
+      "autoMatchThreshold": 1
     },
     {
-      "__description": "Rule 2: Name + gender + DOB fuzzy match",
+      "__description": "Rule 2: Name + Gender + DOB fuzzy match — probabilistic. All 4 fields = auto-match (score ~4), 3 fields = potential match (score ~3)",
       "matchingType": "probabilistic",
       "rule": "2",
       "fields": {
