@@ -104,10 +104,10 @@
         </div>
       </div>
 
-      <!-- Linked Patients -->
+      <!-- Matched Records -->
       <div class="bg-white border border-carbon-100 p-5 mb-5">
         <h2 class="text-lg font-semibold text-carbon-900 mb-4">
-          Linked Patients
+          Matched Records
           <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-carbon-100 text-carbon-600 ml-2">{{ linkedPatients.length }}</span>
         </h2>
 
@@ -117,7 +117,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.702a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L4.34 8.374" />
             </svg>
           </div>
-          <h3 class="text-sm font-medium text-carbon-500">No linked patients found</h3>
+          <h3 class="text-sm font-medium text-carbon-500">No matched records found</h3>
         </div>
 
         <div v-for="lp in linkedPatients" :key="lp.id" class="border border-carbon-100 p-4 mb-3 hover:shadow-sm transition cursor-pointer" @click="goToPatient(lp.id)">
