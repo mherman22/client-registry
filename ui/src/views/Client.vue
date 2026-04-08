@@ -9,12 +9,6 @@
       <span class="text-carbon-700">{{ patientName || 'Details' }}</span>
     </nav>
 
-    <!-- Page Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-semibold text-carbon-900 mb-1">{{ patientName }}</h1>
-      <p class="text-sm text-carbon-500">Patient record detail and linked matches</p>
-    </div>
-
     <!-- Loading -->
     <div v-if="loading" class="text-center py-16 text-carbon-400">
       <svg class="animate-spin h-8 w-8 mx-auto mb-3 text-carbon-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -25,7 +19,31 @@
     </div>
 
     <template v-else-if="patient">
-      <!-- Demographics -->
+      <!-- Page Header -->
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-semibold text-carbon-900 mb-1">{{ patientName }}</h1>
+          <div class="flex items-center gap-3 text-sm text-carbon-500">
+            <span v-if="source" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ source }}</span>
+            <span v-if="patient.gender">{{ patient.gender }}</span>
+            <span v-if="patient.birthDate">DOB: {{ patient.birthDate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submitting System + Golden Record -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+        <div class="bg-white border border-carbon-100 p-5">
+          <div class="text-xs text-carbon-500 uppercase tracking-wide mb-2">Submitting System</div>
+          <div class="text-sm font-semibold text-carbon-900">{{ source || '--' }}</div>
+        </div>
+        <div class="bg-white border border-carbon-100 p-5">
+          <div class="text-xs text-carbon-500 uppercase tracking-wide mb-2">Golden Record (CRUID)</div>
+          <div class="text-sm font-mono text-carbon-700">{{ goldenRecord ? goldenRecord.id : '--' }}</div>
+        </div>
+      </div>
+
+      <!-- Demographics — config-driven fields -->
       <div class="bg-white border border-carbon-100 p-5 mb-5">
         <h2 class="text-lg font-semibold text-carbon-900 mb-4">Demographics</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
@@ -39,7 +57,7 @@
           </div>
           <div>
             <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Date of Birth</div>
-            <div class="text-sm font-medium text-carbon-900">{{ patient.birthDate ? dayjs(patient.birthDate).format('MMM D, YYYY') : '--' }}</div>
+            <div class="text-sm font-medium text-carbon-900">{{ patient.birthDate || '--' }}</div>
           </div>
           <div v-if="address">
             <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Address</div>
@@ -48,12 +66,6 @@
           <div v-if="phone">
             <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Phone</div>
             <div class="text-sm font-medium text-carbon-900">{{ phone }}</div>
-          </div>
-          <div v-if="source">
-            <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Source</div>
-            <div class="text-sm font-medium text-carbon-900">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ source }}</span>
-            </div>
           </div>
           <div v-if="patient.multipleBirthBoolean || patient.multipleBirthInteger">
             <div class="text-xs text-carbon-500 uppercase tracking-wide mb-1">Multiple Birth</div>
@@ -66,28 +78,16 @@
         </div>
       </div>
 
-      <!-- Golden Record (CRUID) -->
-      <div v-if="goldenRecord" class="bg-white border border-carbon-100 p-5 mb-5">
-        <h2 class="text-lg font-semibold text-carbon-900 mb-4">Golden Record</h2>
-        <div class="flex items-center gap-3">
-          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">CRUID</span>
-          <span class="text-sm font-mono text-carbon-700">{{ goldenRecord.id }}</span>
-        </div>
-      </div>
-
-      <!-- Identifiers -->
+      <!-- Identifiers — rendered from config systems -->
       <div class="bg-white border border-carbon-100 p-5 mb-5">
         <h2 class="text-lg font-semibold text-carbon-900 mb-4">Identifiers</h2>
-        <div class="flex gap-2 flex-wrap">
-          <span
-            v-for="(id, idx) in identifiers"
-            :key="idx"
-            class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"
-          >
-            {{ id.label }}: {{ id.value }}
-          </span>
-          <span v-if="identifiers.length === 0" class="text-sm text-carbon-400">No identifiers</span>
+        <div v-if="identifiers.length" class="divide-y divide-carbon-50">
+          <div v-for="(id, idx) in identifiers" :key="idx" class="flex items-center justify-between py-2.5">
+            <div class="text-xs text-carbon-500 uppercase tracking-wide">{{ id.label }}</div>
+            <div class="text-sm font-medium font-mono text-carbon-900">{{ id.value }}</div>
+          </div>
         </div>
+        <div v-else class="text-sm text-carbon-400">No identifiers</div>
       </div>
 
       <!-- Match Status Tags -->
@@ -97,7 +97,8 @@
           <span
             v-for="(tag, idx) in statusTags"
             :key="idx"
-            class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700"
+            :class="tagClass(tag)"
+            class="text-xs font-medium px-2 py-0.5 rounded-full"
           >
             {{ tag.display || tag.code }}
           </span>
@@ -120,21 +121,32 @@
           <h3 class="text-sm font-medium text-carbon-500">No matched records found</h3>
         </div>
 
-        <div v-for="lp in linkedPatients" :key="lp.id" class="border border-carbon-100 p-4 mb-3 hover:shadow-sm transition cursor-pointer" @click="goToPatient(lp.id)">
-          <div class="font-semibold text-carbon-900 mb-1">{{ lp.name }}</div>
-          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-carbon-500 mb-2">
-            <span v-if="lp.gender">{{ lp.gender }}</span>
-            <span v-if="lp.birthDate">DOB: {{ lp.birthDate }}</span>
-            <span v-if="lp.source" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ lp.source }}</span>
-          </div>
-          <div v-if="lp.identifiers.length" class="flex flex-wrap gap-1.5">
-            <span
-              v-for="(id, idx) in lp.identifiers"
-              :key="idx"
-              class="text-xs font-medium px-2 py-0.5 rounded-full bg-carbon-100 text-carbon-600"
-            >
-              {{ id.label }}: {{ id.value }}
-            </span>
+        <div v-else class="divide-y divide-carbon-50">
+          <div
+            v-for="lp in linkedPatients"
+            :key="lp.id"
+            class="py-4 hover:bg-carbon-25 transition cursor-pointer -mx-5 px-5"
+            @click="goToPatient(lp.id)"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <div class="font-semibold text-carbon-900">{{ lp.name }}</div>
+                <div class="flex items-center gap-3 text-sm text-carbon-500 mt-0.5">
+                  <span v-if="lp.gender">{{ lp.gender }}</span>
+                  <span v-if="lp.birthDate">DOB: {{ lp.birthDate }}</span>
+                </div>
+              </div>
+              <span v-if="lp.source" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0">{{ lp.source }}</span>
+            </div>
+            <div v-if="lp.identifiers.length" class="flex flex-wrap gap-1.5 mt-1">
+              <span
+                v-for="(id, idx) in lp.identifiers"
+                :key="idx"
+                class="text-xs font-medium px-2 py-0.5 rounded-full bg-carbon-100 text-carbon-600"
+              >
+                {{ id.label }}: {{ id.value }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -166,10 +178,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import dayjs from 'dayjs'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 
@@ -186,7 +197,7 @@ const breaking = ref(false)
 
 const patientName = computed(() => {
   if (!patient.value || !patient.value.name) return 'Unknown'
-  const n = patient.value.name[0]
+  const n = patient.value.name.find(n => n.use === 'official') || patient.value.name[0]
   const given = n.given ? n.given.join(' ') : ''
   return `${given} ${n.family || ''}`.trim() || 'Unknown'
 })
@@ -213,7 +224,10 @@ const identifiers = computed(() => {
   if (!patient.value || !patient.value.identifier) return []
   return patient.value.identifier.map(id => {
     const dn = app.getSystemURIDisplayName(id.system)
-    return { label: dn ? dn.name : (id.type && id.type.text) || 'ID', value: id.value }
+    return {
+      label: dn ? dn.name : (id.type && id.type.text) || id.system || 'ID',
+      value: id.value
+    }
   })
 })
 
@@ -222,9 +236,16 @@ const statusTags = computed(() => {
   return patient.value.meta.tag.filter(t => t.system !== 'http://openclientregistry.org/fhir/clientid')
 })
 
+function tagClass(tag) {
+  if (tag.code === 'autoMatches') return 'bg-green-100 text-green-700'
+  if (tag.code === 'potentialMatches') return 'bg-yellow-100 text-yellow-800'
+  if (tag.code === 'conflictMatches') return 'bg-red-100 text-red-700'
+  return 'bg-carbon-100 text-carbon-600'
+}
+
 function parseName(resource) {
   if (!resource.name || !resource.name[0]) return 'Unknown'
-  const n = resource.name[0]
+  const n = resource.name.find(n => n.use === 'official') || resource.name[0]
   const given = n.given ? n.given.join(' ') : ''
   return `${given} ${n.family || ''}`.trim() || 'Unknown'
 }
@@ -234,7 +255,7 @@ function parseLinked(resource) {
     resource.meta.tag.find(t => t.system === 'http://openclientregistry.org/fhir/clientid')
   const ids = (resource.identifier || []).map(id => {
     const dn = app.getSystemURIDisplayName(id.system)
-    return { label: dn ? dn.name : (id.type && id.type.text) || 'ID', value: id.value }
+    return { label: dn ? dn.name : (id.type && id.type.text) || id.system || 'ID', value: id.value }
   })
   return {
     id: resource.id,
@@ -248,6 +269,9 @@ function parseLinked(resource) {
 
 async function fetchPatient() {
   loading.value = true
+  patient.value = null
+  goldenRecord.value = null
+  linkedPatients.value = []
   try {
     const res = await axios.get(`/ocrux/fhir/Patient?_id=${route.params.clientId}&_include=Patient:link`)
     const bundle = res.data
@@ -261,7 +285,6 @@ async function fetchPatient() {
       if (r.id === route.params.clientId) {
         patient.value = r
       } else if (isGolden) {
-        // Golden record — fetch its linked patients too
         goldenRecord.value = r
       } else {
         linked.push(parseLinked(r))
@@ -293,8 +316,10 @@ function goToPatient(id) {
   router.push({ name: 'client', params: { clientId: id } })
 }
 
+// Re-fetch when navigating between patients
+watch(() => route.params.clientId, (newId, oldId) => {
+  if (newId && newId !== oldId) fetchPatient()
+})
+
 onMounted(fetchPatient)
 </script>
-
-<style scoped>
-</style>
