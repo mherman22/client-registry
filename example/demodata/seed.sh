@@ -42,32 +42,50 @@ if [ -z "$TOKEN" ]; then
   echo "WARNING: Could not get auth token, trying without auth..."
 fi
 
-# Load patients
+# Load patients via bundle endpoint
 COUNT=$(python3 -c "import json; print(len(json.load(open('${PATIENTS_FILE}'))))" 2>/dev/null)
 echo "Loading ${COUNT} patients..."
 echo ""
 
-SUCCESS=0
-FAIL=0
-
 python3 -c "
 import json, sys
-patients = json.load(open('${PATIENTS_FILE}'))
-for p in patients:
-    print(json.dumps(p))
-" | while IFS= read -r patient; do
-  NAME=$(echo "$patient" | python3 -c "import sys,json; p=json.load(sys.stdin); n=p.get('name',[{}])[0]; print(f\"{' '.join(n.get('given',[]))} {n.get('family','')}\")" 2>/dev/null)
 
-  RESPONSE=$(curl -sf -k -X POST "${OPENCR_URL}/fhir/Patient" \
+patients = json.load(open('${PATIENTS_FILE}'))
+for i, p in enumerate(patients):
+    pid = p.get('identifier', [{}])[0].get('value', f'demo-{i}')
+    bundle = {
+        'resourceType': 'Bundle',
+        'type': 'transaction',
+        'entry': [{
+            'resource': p,
+            'request': {
+                'method': 'PUT',
+                'url': f'Patient/{pid}'
+            }
+        }]
+    }
+    name_parts = p.get('name', [{}])[0]
+    given = ' '.join(name_parts.get('given', []))
+    family = name_parts.get('family', '')
+    print(json.dumps({'bundle': bundle, 'name': f'{given} {family}'}))
+" | while IFS= read -r line; do
+  NAME=$(echo "$line" | python3 -c "import sys,json; print(json.load(sys.stdin)['name'])" 2>/dev/null)
+  BUNDLE=$(echo "$line" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['bundle']))" 2>/dev/null)
+
+  RESPONSE=$(curl -sf -k -o /dev/null -w "%{http_code}" -X POST "${OPENCR_URL}/fhir/" \
     -H "Content-Type: application/fhir+json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d "$patient" 2>&1)
+    -H "x-openhim-clientid: openmrs" \
+    -d "$BUNDLE" 2>&1)
 
-  if [ $? -eq 0 ]; then
+  if [ "$RESPONSE" = "200" ] || [ "$RESPONSE" = "201" ]; then
     echo "  ✓ ${NAME}"
   else
-    echo "  ✗ ${NAME} — failed"
+    echo "  ✗ ${NAME} — HTTP ${RESPONSE}"
   fi
+
+  # Small delay to allow ES indexing between patients
+  sleep 1
 done
 
 echo ""
