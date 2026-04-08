@@ -1,0 +1,411 @@
+{
+  "info": {
+    "name": "OpenCR Demo Data",
+    "description": "Load 10 demo patients into OpenCR for development and testing.\n\nIncludes:\n- 10 patients from Haiti\n- 2 patients share National ID NAT-88001 (Jean Baptiste) -> should auto-match\n- 2 patients share National ID NAT-88002 (Marie Dupont) -> should auto-match\n- 2 patients have multi-birth indicators\n- Patients from OpenMRS and OpenELIS sources\n\n**Setup:** Run the \"Authenticate\" request first to get a token, then run the patient requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authenticate",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/ocrux/user/authenticate?username=root@intrahealth.org&password=intrahealth",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ocrux",
+            "user",
+            "authenticate"
+          ],
+          "query": [
+            {
+              "key": "username",
+              "value": "root@intrahealth.org"
+            },
+            {
+              "key": "password",
+              "value": "intrahealth"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.token) {",
+              "    pm.collectionVariables.set(\"token\", jsonData.token);",
+              "    pm.test(\"Token received\", function () {",
+              "        pm.expect(jsonData.token).to.be.a(\"string\");",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Load Patients",
+      "item": [
+        {
+          "name": "Jean Pierre Baptiste (P-1001)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openmrs"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://clientregistry.org/openmrs\",\n            \"value\": \"P-1001\",\n            \"type\": {\n              \"text\": \"Internal ID\"\n            }\n          },\n          {\n            \"system\": \"http://health.go.ug/cr/nationalid\",\n            \"value\": \"NAT-88001\",\n            \"type\": {\n              \"text\": \"National ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Baptiste\",\n            \"given\": [\n              \"Jean\",\n              \"Pierre\"\n            ]\n          }\n        ],\n        \"gender\": \"male\",\n        \"birthDate\": \"1985-03-15\",\n        \"address\": [\n          {\n            \"city\": \"Port-au-Prince\",\n            \"state\": \"Ouest\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"telecom\": [\n          {\n            \"system\": \"phone\",\n            \"value\": \"+509-3456-7890\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openmrs\",\n              \"display\": \"OpenMRS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-1001\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Marie Claire Dupont (P-1002)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openmrs"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://clientregistry.org/openmrs\",\n            \"value\": \"P-1002\",\n            \"type\": {\n              \"text\": \"Internal ID\"\n            }\n          },\n          {\n            \"system\": \"http://health.go.ug/cr/nationalid\",\n            \"value\": \"NAT-88002\",\n            \"type\": {\n              \"text\": \"National ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Dupont\",\n            \"given\": [\n              \"Marie\",\n              \"Claire\"\n            ]\n          }\n        ],\n        \"gender\": \"female\",\n        \"birthDate\": \"1990-07-22\",\n        \"address\": [\n          {\n            \"city\": \"Cap-Haitien\",\n            \"state\": \"Nord\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"telecom\": [\n          {\n            \"system\": \"phone\",\n            \"value\": \"+509-2345-6789\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openmrs\",\n              \"display\": \"OpenMRS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-1002\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Emmanuel Joseph (P-1003)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openmrs"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://clientregistry.org/openmrs\",\n            \"value\": \"P-1003\",\n            \"type\": {\n              \"text\": \"Internal ID\"\n            }\n          },\n          {\n            \"system\": \"http://health.go.ug/cr/nationalid\",\n            \"value\": \"NAT-88003\",\n            \"type\": {\n              \"text\": \"National ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Joseph\",\n            \"given\": [\n              \"Emmanuel\"\n            ]\n          }\n        ],\n        \"gender\": \"male\",\n        \"birthDate\": \"1978-11-30\",\n        \"multipleBirthInteger\": 2,\n        \"address\": [\n          {\n            \"city\": \"Gonaives\",\n            \"state\": \"Artibonite\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"telecom\": [\n          {\n            \"system\": \"phone\",\n            \"value\": \"+509-4567-8901\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openmrs\",\n              \"display\": \"OpenMRS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-1003\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Rose Marie Celestin (P-1004)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openmrs"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://clientregistry.org/openmrs\",\n            \"value\": \"P-1004\",\n            \"type\": {\n              \"text\": \"Internal ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Celestin\",\n            \"given\": [\n              \"Rose\",\n              \"Marie\"\n            ]\n          }\n        ],\n        \"gender\": \"female\",\n        \"birthDate\": \"1995-01-08\",\n        \"address\": [\n          {\n            \"city\": \"Les Cayes\",\n            \"state\": \"Sud\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"telecom\": [\n          {\n            \"system\": \"phone\",\n            \"value\": \"+509-5678-9012\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openmrs\",\n              \"display\": \"OpenMRS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-1004\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Jacques Pierre (P-1005)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openmrs"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://clientregistry.org/openmrs\",\n            \"value\": \"P-1005\",\n            \"type\": {\n              \"text\": \"Internal ID\"\n            }\n          },\n          {\n            \"system\": \"http://health.go.ug/cr/nationalid\",\n            \"value\": \"NAT-88005\",\n            \"type\": {\n              \"text\": \"National ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Pierre\",\n            \"given\": [\n              \"Jacques\"\n            ]\n          }\n        ],\n        \"gender\": \"male\",\n        \"birthDate\": \"1982-06-14\",\n        \"address\": [\n          {\n            \"city\": \"Jeremie\",\n            \"state\": \"Grand'Anse\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openmrs\",\n              \"display\": \"OpenMRS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-1005\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Jean P. Baptiste (P-2001)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openelis"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://openelis-global.org/pat_nationalId\",\n            \"value\": \"P-2001\",\n            \"type\": {\n              \"text\": \"Lab ID\"\n            }\n          },\n          {\n            \"system\": \"http://health.go.ug/cr/nationalid\",\n            \"value\": \"NAT-88001\",\n            \"type\": {\n              \"text\": \"National ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Baptiste\",\n            \"given\": [\n              \"Jean\",\n              \"P.\"\n            ]\n          }\n        ],\n        \"gender\": \"male\",\n        \"birthDate\": \"1985-03-15\",\n        \"address\": [\n          {\n            \"city\": \"Port-au-Prince\",\n            \"state\": \"Ouest\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openelis\",\n              \"display\": \"OpenELIS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-2001\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Marie Dupont (P-2002)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openelis"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://openelis-global.org/pat_nationalId\",\n            \"value\": \"P-2002\",\n            \"type\": {\n              \"text\": \"Lab ID\"\n            }\n          },\n          {\n            \"system\": \"http://health.go.ug/cr/nationalid\",\n            \"value\": \"NAT-88002\",\n            \"type\": {\n              \"text\": \"National ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Dupont\",\n            \"given\": [\n              \"Marie\"\n            ]\n          }\n        ],\n        \"gender\": \"female\",\n        \"birthDate\": \"1990-07-22\",\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openelis\",\n              \"display\": \"OpenELIS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-2002\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Louverture Toussaint (P-1006)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openmrs"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://clientregistry.org/openmrs\",\n            \"value\": \"P-1006\",\n            \"type\": {\n              \"text\": \"Internal ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Toussaint\",\n            \"given\": [\n              \"Louverture\"\n            ]\n          }\n        ],\n        \"gender\": \"male\",\n        \"birthDate\": \"2000-12-25\",\n        \"address\": [\n          {\n            \"city\": \"Hinche\",\n            \"state\": \"Centre\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"telecom\": [\n          {\n            \"system\": \"phone\",\n            \"value\": \"+509-6789-0123\"\n          },\n          {\n            \"system\": \"email\",\n            \"value\": \"lt@example.com\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openmrs\",\n              \"display\": \"OpenMRS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-1006\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sophia Nadine Aristide (P-1007)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openmrs"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://clientregistry.org/openmrs\",\n            \"value\": \"P-1007\",\n            \"type\": {\n              \"text\": \"Internal ID\"\n            }\n          },\n          {\n            \"system\": \"http://health.go.ug/cr/nationalid\",\n            \"value\": \"NAT-88007\",\n            \"type\": {\n              \"text\": \"National ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Aristide\",\n            \"given\": [\n              \"Sophia\",\n              \"Nadine\"\n            ]\n          }\n        ],\n        \"gender\": \"female\",\n        \"birthDate\": \"1988-09-03\",\n        \"multipleBirthBoolean\": true,\n        \"address\": [\n          {\n            \"city\": \"Jacmel\",\n            \"state\": \"Sud-Est\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"telecom\": [\n          {\n            \"system\": \"phone\",\n            \"value\": \"+509-7890-1234\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openmrs\",\n              \"display\": \"OpenMRS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-1007\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Patrick Desrosiers (P-1008)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/fhir+json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "x-openhim-clientid",
+                "value": "openmrs"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"identifier\": [\n          {\n            \"system\": \"http://clientregistry.org/openmrs\",\n            \"value\": \"P-1008\",\n            \"type\": {\n              \"text\": \"Internal ID\"\n            }\n          }\n        ],\n        \"name\": [\n          {\n            \"family\": \"Desrosiers\",\n            \"given\": [\n              \"Patrick\"\n            ]\n          }\n        ],\n        \"gender\": \"male\",\n        \"birthDate\": \"1972-04-18\",\n        \"address\": [\n          {\n            \"city\": \"Mirebalais\",\n            \"state\": \"Centre\",\n            \"country\": \"Haiti\"\n          }\n        ],\n        \"meta\": {\n          \"tag\": [\n            {\n              \"system\": \"http://openclientregistry.org/fhir/clientid\",\n              \"code\": \"openmrs\",\n              \"display\": \"OpenMRS\"\n            }\n          ]\n        }\n      },\n      \"request\": {\n        \"method\": \"PUT\",\n        \"url\": \"Patient/P-1008\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fhir/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fhir",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
